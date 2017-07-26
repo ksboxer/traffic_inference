@@ -1,0 +1,9 @@
+date: "2014-09-30"
+fake_today: 2014-09-30
+
+raw_data_path: "data/extracted_data"
+
+route: "MTA NYCT_B11"
+next_stop_id: "MTA_300636"
+inferred_date: "Weekday"
+vehicle_id: 7600
