@@ -5,7 +5,7 @@ from sklearn.externals.six import StringIO
 import pydotplus
 
 
-def modeling_svm(training, testing):
+def modeling_clf(training, testing):
 	pass
 	clf = tree.DecisionTreeClassifier()
 	clf.fit(training.loc[:, ["time_before_6", "time_6_9", "time_9_12", "time_12_16", "time_16_19", "time_19_24" ] ], training.loc[:, ["label"]])

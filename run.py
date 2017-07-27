@@ -10,10 +10,17 @@ import data_processing
 import modeling
 import numpy as np
 import data_utils
+import pickle_finder
 
-def transform(training, arr):
+def transform(training, arr = None):
+	training = data_utils.add_day_column(training)
+	training.sort_values(["month","day"])
+
 	min_training = training.groupby(["month", "day","vehicle_id","inferred_trip_id"]).apply(lambda x: pd.DataFrame([[x.time_received_dt.max() - x.time_received_dt.min(), x.time_received_dt.min()]],columns=['diff','min']))
 	
+	min_training["hour"] = min_training["min"].dt.hour
+	min_training = data_processing.hour_break_down(min_training)
+
 	print(type(list(min_training["diff"])[0]))
 
 	min_training["diff_sec"] = min_training["diff"].astype('timedelta64[s]')
@@ -21,7 +28,13 @@ def transform(training, arr):
 	if arr == None:
 		hist, arr = pd.qcut(min_training["diff_sec"], 3, retbins= True, duplicates="drop")
 	
-	return training, arr
+	min_training["label"] = ""
+
+	min_training.loc[(min_training["diff_sec"] < arr[1]), ["label"]] = "low"
+	min_training.loc[((min_training["diff_sec"] < arr[2]) & (min_training["diff_sec"] >= arr[1])), ["label"]] = "medium"
+	min_training.loc[(min_training["diff_sec"] >= arr[2]), ["label"]] = "high"
+
+	return training, list(arr)
 
 	
 
@@ -44,51 +57,25 @@ def main():
 
 	for bus_route, next_stop in segments["distance_along_trip"].keys():
 		#, next_stop = key
-		training, testing = data_loader_preparer.fake_today_processing(configs,bus_route, next_stop)
-		training.to_pickle("training#{}#{}#{}.pickle".format(bus_route, next_stop, configs["fake_today"]))
-		testing.to_pickle("testing#{}#{}#{}.pickle".format(bus_route, next_stop, configs["fake_today"]))
+		training, testing =  pickle_finder.check_for_training_testing(configs, bus_route, next_stop)
 
-		training = data_utils.add_day_column(training)
-		testing = data_utils.add_day_column(testing)
+		if training == None:
+			training, testing = data_loader_preparer.fake_today_processing(configs,bus_route, next_stop)
+			training.to_pickle("training#{}#{}#{}.pickle".format(bus_route, next_stop, configs["fake_today"]))
+			testing.to_pickle("testing#{}#{}#{}.pickle".format(bus_route, next_stop, configs["fake_today"]))
 
-		training.sort_values(["month","day"])
-		testing.sort_values(["month","day"])
 
-		f = {'A':['min'], 'B':['max']}
+		training, arr = transform(training)
+		testing, _ = transform(testing, arr)
 
-		min_training = training.groupby(["month", "day","vehicle_id","inferred_trip_id"]).apply(lambda x: pd.DataFrame([[x.time_received_dt.max() - x.time_received_dt.min(), x.time_received_dt.min()]],columns=['diff','min']))
-		min_testing = testing.groupby(["month", "day","vehicle_id","inferred_trip_id"]).apply(lambda x: pd.DataFrame([[x.time_received_dt.max() - x.time_received_dt.min(), x.time_received_dt.min()]],columns=['diff','min']))
-	
-		min_training["diff_sec"] = min_training["diff"].astype('timedelta64[s]')
-		min_testing["diff_sec"] = min_testing["diff"].astype('timedelta64[s]')
-	hist, arr = pd.qcut(min_training["diff_sec"], 3, retbins= True, duplicates="drop")
-	print(arr)
-	#print(min_training)
-	#print(pd.to_datetime(max_training[2]) - pd.to_datetime(min_training[2]))
-	
-	#print(training.groupby(["month", "day"])["time_received"].min())
+		modeling.modeling_clf(training, testing)
 
-	#training_table, arr = data_processing.table_processing_training(training)
-	#testing_table = data_processing.table_processing_testing(testing, arr)
+		
+
 
 	#mapping.plot_from_tbl(training)
 
 
-	
-	#print training
-	#print(training_table['speed_label'].value_counts())
-	#print(training)
-	#print(training[training['speed'] == 0])
-	#print testing_table
-	#modeling.modeling_svm(training_table, testing_table)
-	#print(training_table["speed_label"].value_counts())
-	#print(training_table)
-	#print(testing_table)
-	'''tbl = data_loader_utils.read_in_file_by_date(configs)
-	vehicle_id_tbl = data_utils.rows_by_vehicle_id(tbl, configs)
-	tbl_shift = data_utils.transform(vehicle_id_tbl)
-	print tbl_shift
-	mapping.plot_from_tbl(vehicle_id_tbl)'''
 
 
 if __name__ == '__main__':
