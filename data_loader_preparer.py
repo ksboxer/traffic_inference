@@ -29,8 +29,7 @@ def fake_today_processing(configs, route_id, bus_stop):
 	training = pd.DataFrame()
 	testing = pd.DataFrame()
 
-	with open('segments.json', 'w') as fp:
-		json.dump(segments, fp)
+
 	
 	for file in files:
 		file_date = file.replace("MTA-Bus-Time_.", "").replace(".txt", "")
@@ -38,7 +37,7 @@ def fake_today_processing(configs, route_id, bus_stop):
 			
 		tbl = data_loader_utils.read_in_table_by_filename(configs,str(file))
 
-		tbl = data_utils.rows_by_routeid_nextstop(tbl, configs, route_id, bus_stop)
+		tbl = data_utils.rows_by_routeid_nextstop(tbl,  route_id, bus_stop)
 		print tbl
 		tbl = data_utils.transform(tbl)
 

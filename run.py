@@ -17,8 +17,12 @@ def transform(training, arr):
 	print(type(list(min_training["diff"])[0]))
 
 	min_training["diff_sec"] = min_training["diff"].astype('timedelta64[s]')
-	hist, arr = pd.qcut(min_training["diff_sec"], 3, retbins= True, duplicates="drop")
+
+	if arr == None:
+		hist, arr = pd.qcut(min_training["diff_sec"], 3, retbins= True, duplicates="drop")
 	
+	return training, arr
+
 	
 
 
@@ -41,35 +45,22 @@ def main():
 	for bus_route, next_stop in segments["distance_along_trip"].keys():
 		#, next_stop = key
 		training, testing = data_loader_preparer.fake_today_processing(configs,bus_route, next_stop)
-	training.to_pickle("training.pickle")
-	testing.to_pickle("testing.pickle")
+		training.to_pickle("training#{}#{}#{}.pickle".format(bus_route, next_stop, configs["fake_today"]))
+		testing.to_pickle("testing#{}#{}#{}.pickle".format(bus_route, next_stop, configs["fake_today"]))
 
-	#training = pd.read_pickle("training.pickle")
-	#testing = pd.read_pickle("testing.pickle")
+		training = data_utils.add_day_column(training)
+		testing = data_utils.add_day_column(testing)
 
-	#print(training["vehicle_id"].value_counts())
+		training.sort_values(["month","day"])
+		testing.sort_values(["month","day"])
 
-	#training = data_utils.rows_by_vehicle_id(training, configs)
-	#testing = data_utils.rows_by_vehicle_id(testing, configs)
-	training = data_utils.add_day_column(training)
+		f = {'A':['min'], 'B':['max']}
 
-	training.sort_values(["month","day"])
-	#print(training)
-
-	#print training
-
-	f = {'A':['min'], 'B':['max']}
-
-	#min_training = training.groupby(["month", "day","inferred_trip_id"])["time_received"].agg({"returns": [np.min, np.max]})
-	#max_training = training.groupby(["month", "day"])["time_received"].max()
-	#print(min_training)
-	#min_training["diff"] = min_training["returns.amin"] - min_training["returns.amax"]
+		min_training = training.groupby(["month", "day","vehicle_id","inferred_trip_id"]).apply(lambda x: pd.DataFrame([[x.time_received_dt.max() - x.time_received_dt.min(), x.time_received_dt.min()]],columns=['diff','min']))
+		min_testing = testing.groupby(["month", "day","vehicle_id","inferred_trip_id"]).apply(lambda x: pd.DataFrame([[x.time_received_dt.max() - x.time_received_dt.min(), x.time_received_dt.min()]],columns=['diff','min']))
 	
-	min_training = training.groupby(["month", "day","vehicle_id","inferred_trip_id"]).apply(lambda x: pd.DataFrame([[x.time_received_dt.max() - x.time_received_dt.min(), x.time_received_dt.min()]],columns=['diff','min']))
-	
-	print(type(list(min_training["diff"])[0]))
-
-	min_training["diff_sec"] = min_training["diff"].astype('timedelta64[s]')
+		min_training["diff_sec"] = min_training["diff"].astype('timedelta64[s]')
+		min_testing["diff_sec"] = min_testing["diff"].astype('timedelta64[s]')
 	hist, arr = pd.qcut(min_training["diff_sec"], 3, retbins= True, duplicates="drop")
 	print(arr)
 	#print(min_training)
@@ -80,7 +71,7 @@ def main():
 	#training_table, arr = data_processing.table_processing_training(training)
 	#testing_table = data_processing.table_processing_testing(testing, arr)
 
-	mapping.plot_from_tbl(training)
+	#mapping.plot_from_tbl(training)
 
 
 	
