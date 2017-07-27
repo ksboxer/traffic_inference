@@ -2,6 +2,16 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 
+def hour_break_down(tbl):
+	tbl["time_before_6"] = (tbl["hour"] <6).astype(int)
+	tbl["time_6_9"] = ((tbl["hour"] >= 6) & (tbl["hour"] < 9)).astype(int)
+	tbl["time_9_12"] = ((tbl["hour"] >= 9) & (tbl["hour"] < 12)).astype(int)
+	tbl["time_12_16"] = ((tbl["hour"] >= 12) & (tbl["hour"] < 16 )).astype(int)
+	tbl["time_16_19"] = ((tbl["hour"] >= 16) & (tbl["hour"] < 19 )).astype(int)
+	tbl["time_19_24"] = ((tbl["hour"] >= 19) & (tbl["hour"] < 24 )).astype(int)
+	return tbl
+
+
 def table_processing_training(tbl):
 	tbl["time_received_datetime"] = pd.to_datetime(tbl["time_received"])
 	tbl["time_hour"] = tbl["time_received_datetime"].dt.hour

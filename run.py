@@ -9,17 +9,43 @@ import pandas as pd
 import data_processing
 import modeling
 import numpy as np
+import data_utils
+
+def transform(training, arr):
+	min_training = training.groupby(["month", "day","vehicle_id","inferred_trip_id"]).apply(lambda x: pd.DataFrame([[x.time_received_dt.max() - x.time_received_dt.min(), x.time_received_dt.min()]],columns=['diff','min']))
+	
+	print(type(list(min_training["diff"])[0]))
+
+	min_training["diff_sec"] = min_training["diff"].astype('timedelta64[s]')
+	hist, arr = pd.qcut(min_training["diff_sec"], 3, retbins= True, duplicates="drop")
+	
+	
+
 
 def main():
 	yaml_file_path = sys.argv[1]
 	with open(yaml_file_path) as f:
 		configs = yaml.load(f)
-	#training, testing = data_loader_preparer.fake_today_processing(configs)
-	#training.to_pickle("training.pickle")
-	#testing.to_pickle("testing.pickle")
 
-	training = pd.read_pickle("training.pickle")
-	testing = pd.read_pickle("testing.pickle")
+
+	#segments = data_loader_preparer.get_agg(configs)
+
+
+	#with open('segments.pickle', 'wb') as handle:
+	#	pickle.dump(segments, handle, protocol=pickle.HIGHEST_PROTOCOL)
+	with open("segments.pickle", "rb") as input_file:
+		segments = pickle.load(input_file)
+
+	print(segments)
+
+	for bus_route, next_stop in segments["distance_along_trip"].keys():
+		#, next_stop = key
+		training, testing = data_loader_preparer.fake_today_processing(configs,bus_route, next_stop)
+	training.to_pickle("training.pickle")
+	testing.to_pickle("testing.pickle")
+
+	#training = pd.read_pickle("training.pickle")
+	#testing = pd.read_pickle("testing.pickle")
 
 	#print(training["vehicle_id"].value_counts())
 
@@ -40,7 +66,11 @@ def main():
 	#min_training["diff"] = min_training["returns.amin"] - min_training["returns.amax"]
 	
 	min_training = training.groupby(["month", "day","vehicle_id","inferred_trip_id"]).apply(lambda x: pd.DataFrame([[x.time_received_dt.max() - x.time_received_dt.min(), x.time_received_dt.min()]],columns=['diff','min']))
-	hist, arr = pd.qcut(min_training["diff"], 3, retbins= True, duplicates="drop")
+	
+	print(type(list(min_training["diff"])[0]))
+
+	min_training["diff_sec"] = min_training["diff"].astype('timedelta64[s]')
+	hist, arr = pd.qcut(min_training["diff_sec"], 3, retbins= True, duplicates="drop")
 	print(arr)
 	#print(min_training)
 	#print(pd.to_datetime(max_training[2]) - pd.to_datetime(min_training[2]))
