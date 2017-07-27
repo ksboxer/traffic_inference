@@ -2,6 +2,13 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 
+def week_day(tbl):
+	tbl["weekday"] = 0
+	print(tbl)
+	#df[df['inferred_trip_id'].str.contains("Weekday")]
+	tbl.loc[tbl['inferred_trip_id'].str.contains("Weekday"),["weekday"]] = 1
+	return tbl
+
 def hour_break_down(tbl):
 	tbl["time_before_6"] = (tbl["hour"] <6).astype(int)
 	tbl["time_6_9"] = ((tbl["hour"] >= 6) & (tbl["hour"] < 9)).astype(int)

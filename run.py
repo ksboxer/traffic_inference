@@ -17,10 +17,14 @@ def transform(training, arr = None):
 	training = data_utils.add_day_column(training)
 	training.sort_values(["month","day"])
 
-	min_training = training.groupby(["month", "day","vehicle_id","inferred_trip_id"]).apply(lambda x: pd.DataFrame([[x.time_received_dt.max() - x.time_received_dt.min(), x.time_received_dt.min()]],columns=['diff','min']))
+	training["inferred_trip_id_c"] = training["inferred_trip_id"]
+
+	min_training = training.groupby(["month", "day","vehicle_id","inferred_trip_id"]).apply(lambda x: pd.DataFrame([[x.time_received_dt.max() - x.time_received_dt.min(), x.time_received_dt.min(), x.inferred_trip_id_c.iloc[0]]],columns=['diff','min', "inferred_trip_id"]))
 	
 	min_training["hour"] = min_training["min"].dt.hour
 	min_training = data_processing.hour_break_down(min_training)
+	min_training = data_processing.week_day(min_training)
+
 	print min_training
 
 	#print(type(list(min_training["diff"])[0]))

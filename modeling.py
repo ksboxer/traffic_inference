@@ -8,8 +8,8 @@ import pydotplus
 def modeling_clf(training, testing, bus_route, next_stop):
 	pass
 	clf = tree.DecisionTreeClassifier()
-	clf.fit(training.loc[:, ["time_before_6", "time_6_9", "time_9_12", "time_12_16", "time_16_19", "time_19_24" ] ], training.loc[:, ["label"]])
-	labels = clf.predict(testing.loc[:, ["time_before_6", "time_6_9", "time_9_12", "time_12_16", "time_16_19", "time_19_24" ] ])
+	clf.fit(training.loc[:, ["time_before_6", "time_6_9", "time_9_12", "time_12_16", "time_16_19", "time_19_24", "weekday" ] ], training.loc[:, ["label"]])
+	labels = clf.predict(testing.loc[:, ["time_before_6", "time_6_9", "time_9_12", "time_12_16", "time_16_19", "time_19_24" , "weekday" ] ])
 
 	#ACCURACY SCORE 
 	#print(list(labels))
