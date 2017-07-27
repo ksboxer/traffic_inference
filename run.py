@@ -69,18 +69,14 @@ def main():
 			testing.to_pickle("testing/testing#{}#{}#{}.pickle".format(bus_route, next_stop, configs["fake_today"]))
 
 
-		training, arr = transform(training)
-		testing, _ = transform(testing, arr)
+		training_transformed, arr = transform(training)
+		testing_transformed, _ = transform(testing, arr)
 
-		results = modeling.modeling_clf(training, testing, bus_route, next_stop)
+		results = modeling.modeling_clf(training_transformed, testing_transformed, bus_route, next_stop)
 		with open('results/result#{}#{}#.json'.format(bus_route, next_stop, configs["fake_today"]), 'w') as fp:
 			json.dump(results, fp)
 
-
-		
-
-
-	#mapping.plot_from_tbl(training)
+		mapping.plot_from_tbl(training, configs, bus_route, next_stop)
 
 
 
