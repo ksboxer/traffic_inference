@@ -11,6 +11,7 @@ import modeling
 import numpy as np
 import data_utils
 import pickle_finder
+import json
 
 def transform(training, arr = None):
 	training = data_utils.add_day_column(training)
@@ -20,8 +21,9 @@ def transform(training, arr = None):
 	
 	min_training["hour"] = min_training["min"].dt.hour
 	min_training = data_processing.hour_break_down(min_training)
+	print min_training
 
-	print(type(list(min_training["diff"])[0]))
+	#print(type(list(min_training["diff"])[0]))
 
 	min_training["diff_sec"] = min_training["diff"].astype('timedelta64[s]')
 
@@ -34,7 +36,7 @@ def transform(training, arr = None):
 	min_training.loc[((min_training["diff_sec"] < arr[2]) & (min_training["diff_sec"] >= arr[1])), ["label"]] = "medium"
 	min_training.loc[(min_training["diff_sec"] >= arr[2]), ["label"]] = "high"
 
-	return training, list(arr)
+	return min_training, list(arr)
 
 	
 
@@ -53,22 +55,27 @@ def main():
 	with open("segments.pickle", "rb") as input_file:
 		segments = pickle.load(input_file)
 
-	print(segments)
+	#print(segments)
 
 	for bus_route, next_stop in segments["distance_along_trip"].keys():
 		#, next_stop = key
 		training, testing =  pickle_finder.check_for_training_testing(configs, bus_route, next_stop)
 
-		if training == None:
+		#print(training)
+
+		if training is  None:
 			training, testing = data_loader_preparer.fake_today_processing(configs,bus_route, next_stop)
-			training.to_pickle("training#{}#{}#{}.pickle".format(bus_route, next_stop, configs["fake_today"]))
-			testing.to_pickle("testing#{}#{}#{}.pickle".format(bus_route, next_stop, configs["fake_today"]))
+			training.to_pickle("training/training#{}#{}#{}.pickle".format(bus_route, next_stop, configs["fake_today"]))
+			testing.to_pickle("testing/testing#{}#{}#{}.pickle".format(bus_route, next_stop, configs["fake_today"]))
 
 
 		training, arr = transform(training)
 		testing, _ = transform(testing, arr)
 
-		modeling.modeling_clf(training, testing)
+		results = modeling.modeling_clf(training, testing, bus_route, next_stop)
+		with open('results/result#{}#{}#.json'.format(bus_route, next_stop, configs["fake_today"]), 'w') as fp:
+			json.dump(results, fp)
+
 
 		
 

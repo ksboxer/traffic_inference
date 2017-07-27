@@ -38,7 +38,7 @@ def fake_today_processing(configs, route_id, bus_stop):
 		tbl = data_loader_utils.read_in_table_by_filename(configs,str(file))
 
 		tbl = data_utils.rows_by_routeid_nextstop(tbl,  route_id, bus_stop)
-		print tbl
+		#print tbl
 		tbl = data_utils.transform(tbl)
 
 		if file_date < fake_today:
