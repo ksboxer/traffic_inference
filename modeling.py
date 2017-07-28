@@ -2,14 +2,15 @@ from sklearn import svm
 from sklearn.metrics import accuracy_score
 from sklearn import tree
 from sklearn.externals.six import StringIO  
+from sklearn.ensemble import RandomForestClassifier
 import pydotplus
 
 
 def modeling_clf(training, testing, bus_route, next_stop):
 	pass
-	clf = tree.DecisionTreeClassifier()
-	clf.fit(training.loc[:, ["time_before_6", "time_6_9", "time_9_12", "time_12_16", "time_16_19", "time_19_24", "weekday" ] ], training.loc[:, ["label"]])
-	labels = clf.predict(testing.loc[:, ["time_before_6", "time_6_9", "time_9_12", "time_12_16", "time_16_19", "time_19_24" , "weekday" ] ])
+	clf = RandomForestClassifier(n_jobs=-1)
+	clf.fit(training.loc[:, ["time_before_6", "time_6_9", "time_9_12", "time_12_16", "time_16_19", "time_19_24" ] ], training.loc[:, ["label"]])
+	labels = clf.predict(testing.loc[:, ["time_before_6", "time_6_9", "time_9_12", "time_12_16", "time_16_19", "time_19_24" ] ])
 
 	#ACCURACY SCORE 
 	#print(list(labels))

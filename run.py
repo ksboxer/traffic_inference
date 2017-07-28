@@ -33,7 +33,11 @@ def transform(training, arr = None):
 
 	if arr == None:
 		hist, arr = pd.qcut(min_training["diff_sec"], 3, retbins= True, duplicates="drop")
+	if len(arr) < 3:
+		hist, arr = pd.cut(min_training["diff_sec"], 3, retbins= True)
 	
+	arr = list(arr)
+	print(arr)
 	min_training["label"] = ""
 
 	min_training.loc[(min_training["diff_sec"] < arr[1]), ["label"]] = "low"
