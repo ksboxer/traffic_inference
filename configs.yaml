@@ -8,5 +8,5 @@ next_stop_id: "MTA_402772"
 inferred_date: "Weekday"
 vehicle_id: 7600
 
-two_segments: false
+two_segments: True
 extension: '_twosegments'

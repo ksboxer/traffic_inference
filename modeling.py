@@ -15,7 +15,7 @@ def modeling_clf(training, testing, bus_route, next_stop):
 
 	#ACCURACY SCORE 
 	#print(list(labels))
-	errors = {}
+	
 	testing["predicted_labels"] = labels
 	error = mean_absolute_error(testing['diff_sec'], testing['predicted_labels'])
 	print(error)
@@ -23,7 +23,7 @@ def modeling_clf(training, testing, bus_route, next_stop):
 	results = {}
 	results["bus_route"] = bus_route
 	results["next_stop"] = next_stop
-	results["error"] = errors
+	results["error"] = error
 	#tree.export_graphviz(clf,out_file='tree.dot')  
 
 	#dot_data = StringIO() 

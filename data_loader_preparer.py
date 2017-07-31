@@ -10,11 +10,19 @@ from itertools import groupby
 def get_agg_twosegments(configs):
 	fake_today = configs["fake_today"]
 	files = os.listdir(configs['raw_data_path'])
-	segments = []
+	segments = {}
 	for file in files:
 		tbl = data_loader_utils.read_in_table_by_filename(configs,str(file))
 		agg_dict = data_utils.aggegrate_data_twosegments(tbl)
-		segments.append(agg_dict)
+		for key in agg_dict:
+			if key not in segments:
+				segments[key] = agg_dict[key]
+			else:
+				for trip in agg_dict[key]:
+					if trip not in segments[key]:
+						segments[key].append(trip)
+		with open('segments_twosegments.pickle', 'wb') as f:
+			pickle.dump(segments, f, protocol=pickle.HIGHEST_PROTOCOL)
 	return segments
 
 def get_agg(configs):

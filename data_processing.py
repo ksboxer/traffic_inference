@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 
+
+
 def week_day(tbl):
 	tbl["weekday"] = 0
 	print(tbl)
