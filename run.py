@@ -38,12 +38,12 @@ def transform(training, arr = None):
 	
 	arr = list(arr)
 	print(arr)
-	min_training["label"] = ""
+	'''min_training["label"] = ""
 
 	min_training.loc[(min_training["diff_sec"] < arr[1]), ["label"]] = "low"
 	min_training.loc[((min_training["diff_sec"] < arr[2]) & (min_training["diff_sec"] >= arr[1])), ["label"]] = "medium"
 	min_training.loc[(min_training["diff_sec"] >= arr[2]), ["label"]] = "high"
-
+	'''
 	return min_training, list(arr)
 
 	
@@ -55,41 +55,44 @@ def main():
 		configs = yaml.load(f)
 
 
-	#segments = data_loader_preparer.get_agg(configs)
+	if configs["two_segments"]:
+		segments = data_loader_preparer.get_agg_twosegments(configs)
+		with open('segments{}.pickle'.format(configs['extension']), 'wb') as handle:
+			pickle.dump(segments, handle, protocol=pickle.HIGHEST_PROTOCOL)
+	else:
+		#segments = data_loader_preparer.get_agg(configs)
+		#with open('segments.pickle', 'wb') as handle:
+		#	pickle.dump(segments, handle, protocol=pickle.HIGHEST_PROTOCOL)
+		with open("segments.pickle", "rb") as input_file:
+			segments = pickle.load(input_file)
+
+		print(segments)
+
+		for bus_route, next_stop in segments["distance_along_trip"].keys():
+			#, next_stop = key
+			training, testing =  pickle_finder.check_for_training_testing(configs, bus_route, next_stop)
+
+			#print(training)
+
+			if training is  None:
+				training, testing = data_loader_preparer.fake_today_processing(configs,bus_route, next_stop)
+				training.to_pickle("training/training#{}#{}#{}.pickle".format(bus_route, next_stop, configs["fake_today"]))
+				testing.to_pickle("testing/testing#{}#{}#{}.pickle".format(bus_route, next_stop, configs["fake_today"]))
 
 
-	#with open('segments.pickle', 'wb') as handle:
-	#	pickle.dump(segments, handle, protocol=pickle.HIGHEST_PROTOCOL)
-	with open("segments.pickle", "rb") as input_file:
-		segments = pickle.load(input_file)
+			training_transformed, arr = transform(training)
+			testing_transformed, _ = transform(testing, arr)
 
-	#print(segments)
+			results = modeling.modeling_clf(training_transformed, testing_transformed, bus_route, next_stop)
+			with open('results/result#{}#{}#.json'.format(bus_route, next_stop, configs["fake_today"]), 'w') as fp:
+				json.dump(results, fp)
 
-	for bus_route, next_stop in segments["distance_along_trip"].keys():
-		#, next_stop = key
-		training, testing =  pickle_finder.check_for_training_testing(configs, bus_route, next_stop)
-
-		#print(training)
-
-		if training is  None:
-			training, testing = data_loader_preparer.fake_today_processing(configs,bus_route, next_stop)
-			training.to_pickle("training/training#{}#{}#{}.pickle".format(bus_route, next_stop, configs["fake_today"]))
-			testing.to_pickle("testing/testing#{}#{}#{}.pickle".format(bus_route, next_stop, configs["fake_today"]))
-
-
-		training_transformed, arr = transform(training)
-		testing_transformed, _ = transform(testing, arr)
-
-		results = modeling.modeling_clf(training_transformed, testing_transformed, bus_route, next_stop)
-		with open('results/result#{}#{}#.json'.format(bus_route, next_stop, configs["fake_today"]), 'w') as fp:
-			json.dump(results, fp)
-
-		mapping.plot_from_tbl(training, configs, bus_route, next_stop)
-
+			mapping.plot_from_tbl(training, configs, bus_route, next_stop)
+		
 
 
 
 if __name__ == '__main__':
-	print("hello world.. traffic is solvable problem")
+	print("hello world.. ")
 	main()
 	

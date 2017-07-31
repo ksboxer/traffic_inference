@@ -5,6 +5,17 @@ import data_utils
 import pandas as pd
 import json
 import pickle
+from itertools import groupby
+
+def get_agg_twosegments(configs):
+	fake_today = configs["fake_today"]
+	files = os.listdir(configs['raw_data_path'])
+	segments = []
+	for file in files:
+		tbl = data_loader_utils.read_in_table_by_filename(configs,str(file))
+		agg_dict = data_utils.aggegrate_data_twosegments(tbl)
+		segments.append(agg_dict)
+	return segments
 
 def get_agg(configs):
 	fake_today = configs["fake_today"]

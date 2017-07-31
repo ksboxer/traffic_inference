@@ -1,9 +1,28 @@
 import pandas as pd
+from itertools import groupby
+
 
 def aggegrate_data(tbl):
 	#print(tbl)
 	agg_tbl = tbl.groupby(["inferred_route_id", "next_scheduled_stop_id"]).count()
 	return agg_tbl
+
+def aggegrate_data_twosegments(tbl):
+	tbl  = tbl.sort_values (["time_received"])
+	agg_tbl = tbl.groupby(["inferred_route_id", "inferred_trip_id","vehicle_id"]).apply(lambda x: x.to_dict(orient='records'))
+	
+	segments = []
+
+	for group in agg_tbl:
+		group_df = pd.DataFrame(group)
+		group_df  = group_df.sort_values (["time_received"])
+		#print(group_df)
+		res = {(group_df.loc[0, 'inferred_route_id'], group_df.loc[0, 'inferred_trip_id']): [x[0] for x in groupby(group_df["next_scheduled_stop_id"].tolist())]}
+		#print(group_df["next_scheduled_stop_id"])
+		segments.append(res)
+		print(res)
+
+	return segments
 
 def rows_by_routeid_nextstop(tbl,route_id, bus_stop):
 	tbl= tbl[tbl["inferred_route_id"] == route_id]

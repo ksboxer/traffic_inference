@@ -7,3 +7,6 @@ route: "MTA NYCT_M101"
 next_stop_id: "MTA_402772"
 inferred_date: "Weekday"
 vehicle_id: 7600
+
+two_segments: false
+extension: '_twosegments'
