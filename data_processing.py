@@ -20,6 +20,15 @@ def hour_break_down(tbl):
 	tbl["time_19_24"] = ((tbl["hour"] >= 19) & (tbl["hour"] < 24 )).astype(int)
 	return tbl
 
+def hour_break_down_general(tbl, hour_key, features_ext):
+	tbl["time_before_6"+features_ext] = (tbl[hour_key] <6).astype(int)
+	tbl["time_6_9"+features_ext] = ((tbl[hour_key] >= 6) & (tbl[hour_key] < 9)).astype(int)
+	tbl["time_9_12"+features_ext] = ((tbl[hour_key] >= 9) & (tbl[hour_key] < 12)).astype(int)
+	tbl["time_12_16"+features_ext] = ((tbl[hour_key] >= 12) & (tbl[hour_key] < 16 )).astype(int)
+	tbl["time_16_19"+features_ext] = ((tbl[hour_key] >= 16) & (tbl[hour_key] < 19 )).astype(int)
+	tbl["time_19_24"+features_ext] = ((tbl[hour_key] >= 19) & (tbl[hour_key] < 24 )).astype(int)
+	return tbl
+
 
 def table_processing_training(tbl):
 	tbl["time_received_datetime"] = pd.to_datetime(tbl["time_received"])

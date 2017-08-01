@@ -13,6 +13,18 @@ import data_utils
 import pickle_finder
 import json
 
+def transform_twosegments(training):
+	training["hour"] = training["min"].dt.hour
+	training = data_processing.hour_break_down(training)
+
+	training["hour_previous"] = training["min_shift"].dt.hour
+	training = data_processing.hour_break_down_general(training, "hour_previous", "_twoseg")
+	training = data_processing.week_day(training)
+	training["diff_sec"] = training["diff"].astype('timedelta64[s]')
+	training["diff_shift_sec"] = training["diff_shift"].astype('timedelta64[s]')
+
+	return training
+
 def transform(training, arr = None):
 	training = data_utils.add_day_column(training)
 	training = data_utils.add_manhattan(training)
@@ -101,9 +113,15 @@ def main():
 					if training == None:
 						training, testing = data_loader_preparer.fake_today_processing(configs, route, stop1, stop2)
 						
-						training.to_pickle("training_twosegments/training#{}#{}#{}#{}.pickle".format(bus_route, stop1, stop2, configs["fake_today"]))
-						testing.to_pickle("testing_twosegments/testing#{}#{}#{}#{}.pickle".format(bus_route, stop1, stop2, configs["fake_today"]))
+						training.to_pickle("training_twosegments/training#{}#{}#{}#{}.pickle".format(route, stop1, stop2, configs["fake_today"]))
+						testing.to_pickle("testing_twosegments/testing#{}#{}#{}#{}.pickle".format(route, stop1, stop2, configs["fake_today"]))
 
+						training = transform_twosegments(training)
+						testing = transform_twosegments(testing)
+
+						results = modeling.all_models(training, testing, route, stop1, stop2, "_twoseg")
+						with open('results_twosegments/result#{}#{}#{}#.json'.format(route, stop1, stop2, configs["fake_today"]), 'w') as fp:
+							json.dump(results, fp)
 
 				#if segments[(route,trip_id)][(stop1, stop2)] > 5:
 					#

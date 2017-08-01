@@ -62,7 +62,7 @@ def rows_by_routeid_nextstop_twosegments(tbl, route_id, bus_stop1, bus_stop2):
 	temp = temp[temp["max"] > temp["max_shift"]]
 	temp = temp[temp["min"] > temp["min_shift"]]
 	temp = temp[(temp["next_scheduled_stop_id"] == bus_stop2) & (temp["next_scheduled_stop_shift"] == bus_stop1)]
-	print(temp)
+	#print(temp)
 	#tbl["next_bus_shift"] = tbl["next_scheduled_stop_id"].shift(1)
 
 	#print(tbl[(tbl["next_scheduled_stop_id"] == bus_stop2) & (tbl["next_bus_shift"] == bus_stop1)])
