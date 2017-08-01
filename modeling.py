@@ -8,9 +8,9 @@ import pydotplus
 
 def all_models(training, testing, bus_route, bus_stop1, bus_stop2, extension):
 	res = {}
-	results["bus_route"] = bus_route
-	results["stop1"] = bus_stop1
-	results["stop2"] = bus_stop2
+	res["bus_route"] = bus_route
+	res["stop1"] = bus_stop1
+	res["stop2"] = bus_stop2
 
 	#==================================================
 
