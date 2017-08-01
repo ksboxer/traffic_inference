@@ -88,10 +88,27 @@ def main():
 
 
 	if configs["two_segments"]:
-		segments = data_loader_preparer.get_agg_twosegments(configs)
-		with open('segments{}.pickle'.format(configs['extension']), 'wb') as handle:
-			pickle.dump(segments, handle, protocol=pickle.HIGHEST_PROTOCOL)
-		two_segments(configs)
+		#segments = data_loader_preparer.get_agg_twosegments(configs)
+		#with open('segments{}.pickle'.format(configs['extension']), 'wb') as handle:
+		#	pickle.dump(segments, handle, protocol=pickle.HIGHEST_PROTOCOL)
+		#two_segments(configs)
+		with open('stops_two_segments.pickle','rb') as f:
+			segments = pickle.load(f)
+		for route, trip_id in segments:
+			for stop1, stop2 in segments[(route,trip_id)]:
+				if segments[(route,trip_id)][(stop1, stop2)] > 20:
+					training, testing =  pickle_finder.check_training_testing_two_segment(configs, route, stop1, stop2)
+					if training == None:
+						training, testing = data_loader_preparer.fake_today_processing(configs, route, stop1, stop2)
+						
+						training.to_pickle("training_twosegments/training#{}#{}#{}#{}.pickle".format(bus_route, stop1, stop2, configs["fake_today"]))
+						testing.to_pickle("testing_twosegments/testing#{}#{}#{}#{}.pickle".format(bus_route, stop1, stop2, configs["fake_today"]))
+
+
+				#if segments[(route,trip_id)][(stop1, stop2)] > 5:
+					#
+				#print(stop1,stop2)
+				#print segments[(route,trip_id)][(stop1, stop2)]
 	else:
 		#pass
 		#segments = data_loader_preparer.get_agg(configs)

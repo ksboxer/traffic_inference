@@ -40,9 +40,21 @@ def get_agg(configs):
 				segments[key] = agg_dict[key]
 	return segments
 
+def fake_today_processing_two_segment(configs, route_id, bus_stop_1, bus_stop2):
+	fake_today = configs["fake_today"]
+	files = os.listdir(configs['raw_data_path'])
+	training = pd.DataFrame()
+	testing = pd.DataFrame()
+
+	for file in files:
+		file_date = file.replace("MTA-Bus-Time_.", "").replace(".txt", "")
+		file_date = datetime.strptime(file_date, '%Y-%m-%d').date()
+			
+		tbl = data_loader_utils.read_in_table_by_filename(configs,str(file))
 
 
-def fake_today_processing(configs, route_id, bus_stop):
+
+def fake_today_processing(configs, route_id, bus_stop, bus_stop2 = None):
 	fake_today = configs["fake_today"]
 	files = os.listdir(configs['raw_data_path'])
 	training = pd.DataFrame()
@@ -56,7 +68,12 @@ def fake_today_processing(configs, route_id, bus_stop):
 			
 		tbl = data_loader_utils.read_in_table_by_filename(configs,str(file))
 
-		tbl = data_utils.rows_by_routeid_nextstop(tbl,  route_id, bus_stop)
+		if configs["two_segments"]:
+			print(bus_stop)
+			print(bus_stop2)
+			tbl = data_utils.rows_by_routeid_nextstop_twosegments(tbl, route_id, bus_stop, bus_stop2)
+		else:
+			tbl = data_utils.rows_by_routeid_nextstop(tbl,  route_id, bus_stop)
 		#print tbl
 		tbl = data_utils.transform(tbl)
 
