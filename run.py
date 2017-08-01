@@ -13,13 +13,26 @@ import data_utils
 import pickle_finder
 import json
 
+def transform_twosegments(training):
+	training["hour"] = training["min"].dt.hour
+	training = data_processing.hour_break_down(training)
+
+	training["hour_previous"] = training["min_shift"].dt.hour
+	training = data_processing.hour_break_down_general(training, "hour_previous", "_twoseg")
+	training = data_processing.week_day(training)
+	training["diff_sec"] = training["diff"].astype('timedelta64[s]')
+	training["diff_shift_sec"] = training["diff_shift"].astype('timedelta64[s]')
+
+	return training
+
 def transform(training, arr = None):
 	training = data_utils.add_day_column(training)
+	training = data_utils.add_manhattan(training)
 	training.sort_values(["month","day"])
 
 	training["inferred_trip_id_c"] = training["inferred_trip_id"]
 
-	min_training = training.groupby(["month", "day","vehicle_id","inferred_trip_id"]).apply(lambda x: pd.DataFrame([[x.time_received_dt.max() - x.time_received_dt.min(), x.time_received_dt.min(), x.inferred_trip_id_c.iloc[0]]],columns=['diff','min', "inferred_trip_id"]))
+	min_training = training.groupby(["month", "day","vehicle_id","inferred_route_id","inferred_trip_id"]).apply(lambda x: pd.DataFrame([[x.time_received_dt.max() - x.time_received_dt.min(), x.time_received_dt.min(), x.inferred_trip_id_c.iloc[0]]],columns=['diff','min', "inferred_trip_id"]))
 	
 	min_training["hour"] = min_training["min"].dt.hour
 	min_training = data_processing.hour_break_down(min_training)
@@ -38,15 +51,46 @@ def transform(training, arr = None):
 	
 	arr = list(arr)
 	print(arr)
-	min_training["label"] = ""
+	'''min_training["label"] = ""
 
 	min_training.loc[(min_training["diff_sec"] < arr[1]), ["label"]] = "low"
 	min_training.loc[((min_training["diff_sec"] < arr[2]) & (min_training["diff_sec"] >= arr[1])), ["label"]] = "medium"
 	min_training.loc[(min_training["diff_sec"] >= arr[2]), ["label"]] = "high"
-
+	'''
 	return min_training, list(arr)
 
-	
+def one_segment(configs):
+	with open("segments.pickle", "rb") as input_file:
+			segments = pickle.load(input_file)
+
+	print(segments)
+
+	for bus_route, next_stop in segments["distance_along_trip"].keys():
+		if "MTA NYCT_M" in bus_route:
+				#, next_stop = key
+			training, testing =  pickle_finder.check_for_training_testing(configs, bus_route, next_stop)
+
+				#print(training)
+
+			if training is  None:
+				training, testing = data_loader_preparer.fake_today_processing(configs,bus_route, next_stop)
+				training.to_pickle("training/training#{}#{}#{}.pickle".format(bus_route, next_stop, configs["fake_today"]))
+				testing.to_pickle("testing/testing#{}#{}#{}.pickle".format(bus_route, next_stop, configs["fake_today"]))
+
+
+				training_transformed, arr = transform(training)
+				testing_transformed, _ = transform(testing, arr)
+
+				results = modeling.modeling_clf(training_transformed, testing_transformed, bus_route, next_stop)
+				with open('results/result#{}#{}#.json'.format(bus_route, next_stop, configs["fake_today"]), 'w') as fp:
+					json.dump(results, fp)
+
+				mapping.plot_from_tbl(training, configs, bus_route, next_stop)
+
+
+def two_segments(configs):
+	pass
+
 
 
 def main():
@@ -55,41 +99,45 @@ def main():
 		configs = yaml.load(f)
 
 
-	#segments = data_loader_preparer.get_agg(configs)
+	if configs["two_segments"]:
+		#segments = data_loader_preparer.get_agg_twosegments(configs)
+		#with open('segments{}.pickle'.format(configs['extension']), 'wb') as handle:
+		#	pickle.dump(segments, handle, protocol=pickle.HIGHEST_PROTOCOL)
+		#two_segments(configs)
+		with open('stops_two_segments.pickle','rb') as f:
+			segments = pickle.load(f)
+		for route, trip_id in segments:
+			for stop1, stop2 in segments[(route,trip_id)]:
+				if segments[(route,trip_id)][(stop1, stop2)] > 20:
+					training, testing =  pickle_finder.check_training_testing_two_segment(configs, route, stop1, stop2)
+					if training is None:
+						training, testing = data_loader_preparer.fake_today_processing(configs, route, stop1, stop2)
+						
+						training.to_pickle("training_twosegments/training#{}#{}#{}#{}.pickle".format(route, stop1, stop2, configs["fake_today"]))
+						testing.to_pickle("testing_twosegments/testing#{}#{}#{}#{}.pickle".format(route, stop1, stop2, configs["fake_today"]))
 
+					training = transform_twosegments(training)
+					testing = transform_twosegments(testing)
 
-	#with open('segments.pickle', 'wb') as handle:
-	#	pickle.dump(segments, handle, protocol=pickle.HIGHEST_PROTOCOL)
-	with open("segments.pickle", "rb") as input_file:
-		segments = pickle.load(input_file)
+					results = modeling.all_models(training, testing, route, stop1, stop2, "_twoseg")
+					with open('results_twosegments/result#{}#{}#{}#.json'.format(route, stop1, stop2, configs["fake_today"]), 'w') as fp:
+						json.dump(results, fp)
 
-	#print(segments)
-
-	for bus_route, next_stop in segments["distance_along_trip"].keys():
-		#, next_stop = key
-		training, testing =  pickle_finder.check_for_training_testing(configs, bus_route, next_stop)
-
-		#print(training)
-
-		if training is  None:
-			training, testing = data_loader_preparer.fake_today_processing(configs,bus_route, next_stop)
-			training.to_pickle("training/training#{}#{}#{}.pickle".format(bus_route, next_stop, configs["fake_today"]))
-			testing.to_pickle("testing/testing#{}#{}#{}.pickle".format(bus_route, next_stop, configs["fake_today"]))
-
-
-		training_transformed, arr = transform(training)
-		testing_transformed, _ = transform(testing, arr)
-
-		results = modeling.modeling_clf(training_transformed, testing_transformed, bus_route, next_stop)
-		with open('results/result#{}#{}#.json'.format(bus_route, next_stop, configs["fake_today"]), 'w') as fp:
-			json.dump(results, fp)
-
-		mapping.plot_from_tbl(training, configs, bus_route, next_stop)
-
+				#if segments[(route,trip_id)][(stop1, stop2)] > 5:
+					#
+				#print(stop1,stop2)
+				#print segments[(route,trip_id)][(stop1, stop2)]
+	else:
+		#pass
+		#segments = data_loader_preparer.get_agg(configs)
+		#with open('segments.pickle', 'wb') as handle:
+		#	pickle.dump(segments, handle, protocol=pickle.HIGHEST_PROTOCOL)
+		one_segment(configs)
+		
 
 
 
 if __name__ == '__main__':
-	print("hello world.. traffic is solvable problem")
+	print("hello world.. ")
 	main()
 	
