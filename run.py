@@ -120,8 +120,9 @@ def main():
 					testing = transform_twosegments(testing)
 
 					results = modeling.all_models(training, testing, route, stop1, stop2, "_twoseg")
-					with open('results_twosegments/result#{}#{}#{}#.json'.format(route, stop1, stop2, configs["fake_today"]), 'w') as fp:
-						json.dump(results, fp)
+					if results != None:
+						with open('results_twosegments/result#{}#{}#{}#.json'.format(route, stop1, stop2, configs["fake_today"]), 'w') as fp:
+							json.dump(results, fp)
 
 				#if segments[(route,trip_id)][(stop1, stop2)] > 5:
 					#

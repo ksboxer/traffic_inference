@@ -7,6 +7,8 @@ from sklearn.linear_model import LinearRegression
 import pydotplus
 
 def all_models(training, testing, bus_route, bus_stop1, bus_stop2, extension):
+	if len(training) == 0:
+		return None
 	res = {}
 	res["bus_route"] = bus_route
 	res["stop1"] = bus_stop1
