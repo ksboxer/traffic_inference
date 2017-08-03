@@ -19,9 +19,11 @@ def main():
 		for previous_stop in previous_stops:
 			raw_data = network[key].incoming_traffic[previous_stop]["raw_data"]
 			if len(raw_data) > 20:
-				print(raw_data)
-				#mapping.plot_from_tbl_segments(raw_data, previous_stop, key, "mapping_network")
-
+				#print(raw_data)
+				try:
+					mapping.plot_from_tbl_segments(raw_data, previous_stop, key, "mapping_network")
+				except IndexError:
+					print('catch')
 
 
 
