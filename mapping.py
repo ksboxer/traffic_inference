@@ -21,11 +21,19 @@ def add_key(file_name):
 
 
 
-def plot_from_tbl(tbl, configs, bus_route,next_stop):
+def plot_from_tbl(tbl, configs, bus_route,next_stop, folder):
 	gmap = gmp.from_geocode("New York City")
 	gmap.scatter(tbl['latitude'], tbl['longitude'], '#3B0B39', size=10, marker=False)
 	#gmap.plot(list(tbl['latitude']), tbl['longitude'], 'cornflowerblue', edge_width=10)
-	map_file_name = "mapping_htmls/map#{}#{}#{}.html".format(bus_route, next_stop, configs["fake_today"])
+	map_file_name = "{}/map#{}#{}#{}.html".format(folder,bus_route, next_stop, configs["fake_today"])
+	gmap.draw(map_file_name)
+	add_key(map_file_name)
+
+def plot_from_tbl_segments(tbl, previous_stop, stop, folder):
+	gmap = gmp.from_geocode("Manhattan")
+	gmap.scatter(tbl['latitude'], tbl['longitude'], '#3B0B39', size=10, marker=False)
+	#gmap.plot(list(tbl['latitude']), tbl['longitude'], 'cornflowerblue', edge_width=10)
+	map_file_name = "{}/map#{}#{}.html".format(folder,previous_stop, stop)
 	gmap.draw(map_file_name)
 	add_key(map_file_name)
 
