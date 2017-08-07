@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import matplotlib.dates as mdates
 import numpy as np
+import time
+import data_utils
+import json
 
 class BusStop:
 
@@ -70,7 +73,62 @@ class BusStop:
 				#print(duration_tbl)
 				#sns.tsplot(data = duration_tbl, time = 'start_time', value = "duration_seconds",  unit="subject")
 				#plt.show()
-				print('saving graph')
+				#print('saving graph')
 				plt.savefig('{}/graph#{}#{}.png'.format(folder,  previous_stop, stop))
+				time.sleep(1)
 				#fig = plot.get_figure()
 				#fig.savefig('{}/graph#{}#{}.png'.format(folder, self.name, previous_stop))
+	
+	def add_stats(self, folder, stop):
+		for previous_stop in self.incoming_traffic:
+			if "duration_table" in self.incoming_traffic[previous_stop]:
+				duration_tbl = self.incoming_traffic[previous_stop]["duration_table"]
+
+				duration_tbl = data_utils.add_day_column(duration_tbl, "start_time")
+				duration_tbl  = data_utils.add_thirty_min_columns(duration_tbl)
+				#print(duration_tbl)
+
+				duration_tbl = duration_tbl.sort_values(["vehicle_id", "start_time"])
+
+				agg = duration_tbl.groupby([ "month", "day"])
+
+				stats = {}
+				stats["days_agg"] = {}
+				stats["days_hour_agg"]={}
+				stats["days_thirty_min"] = {}
+
+				for (month, day), group in agg:
+					#print(month, day)
+					#print(len(group))
+					stats["days_agg"][str(month)+'_'+str(day)] = len(group)
+
+				agg = duration_tbl.groupby([ "month", "day", "hour"])
+				for (month, day, hour), group in agg:
+					#print(month, day)
+					#print(len(group))
+					if str(month)+'_'+day not in stats["days_hour_agg"]:
+						stats["days_hour_agg"][str(month)+'_'+str(day)] = {}
+
+					stats["days_hour_agg"][month+'_'+day][hour] = len(group)
+
+				agg = duration_tbl.groupby([ "month", "day", "hour", "thirty_min"])
+
+				for (month, day, hour, thirty), group in agg:
+					if month+'_'+day not in stats["days_thirty_min"]:
+						stats["days_thirty_min"][month+'_'+day] = {}
+					if hour not in stats["days_thirty_min"][month+'_'+day]:
+						stats["days_thirty_min"][month+'_'+day][hour] = {}
+					stats["days_thirty_min"][month+'_'+day][hour][thirty] = len(group)
+
+				print stats
+
+				with open('{}/{}#{}.json'.format(folder, previous_stop, stop),'w') as f:
+					json.dump(stats, f)
+
+
+				#
+				#raw_data = data_utils.add_thirty_min_columns(raw_data)
+				#raw_data.sort_values(["vehicle_id", "time_received"])
+				#agg = raw_data.groupby(["inferred_route_id", "inferred_trip_id", "vehicle_id", "day", "hour"]).agg(["count"])
+				#print(agg)'''
+				

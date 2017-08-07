@@ -2,6 +2,7 @@ import yaml
 import pickle
 import sys
 import mapping
+import time
 
 
 def main():
@@ -16,6 +17,7 @@ def main():
 	for key in network:
 		previous_stops = network[key].incoming_traffic.keys()
 		network[key].plot_duration("traffic_graph", key)
+		network[key].add_stats("stats_network", key)
 		for previous_stop in previous_stops:
 			raw_data = network[key].incoming_traffic[previous_stop]["raw_data"]
 			if len(raw_data) > 20:
@@ -24,6 +26,7 @@ def main():
 					mapping.plot_from_tbl_segments(raw_data, previous_stop, key, "mapping_network")
 				except IndexError:
 					print('catch')
+			time.sleep(1)
 
 
 
