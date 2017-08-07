@@ -2,6 +2,7 @@ import pandas as pd
 from itertools import groupby
 import json
 import pickle
+import numpy as np
 
 def add_manhattan(tbl):
 	tbl["inferred_route_id"] = tbl["inferred_route_id"].fillna("none")
@@ -73,9 +74,15 @@ def rows_by_routeid_nextstop_twosegments(tbl, route_id, bus_stop1, bus_stop2):
 def transform(tbl):
 	return tbl
 
-def add_day_column(tbl):
-	tbl["time_received_dt"] = pd.to_datetime(tbl["time_received"])
-	tbl["day"] = tbl["time_received_dt"].dt.day
-	tbl["month"] = tbl["time_received_dt"].dt.month
-	tbl["hour"] = tbl["time_received_dt"].dt.hour
+def add_day_column(tbl, key="time_received"):
+	tbl["time_received_dt"] = pd.to_datetime(tbl[key])
+	tbl["day"] = tbl["time_received_dt"].dt.day.apply(str)
+	tbl["month"] = tbl["time_received_dt"].dt.month.apply(str)
+	tbl["hour"] = tbl["time_received_dt"].dt.hour.apply(str)
+	tbl["min"] = tbl["time_received_dt"].dt.minute
+	return tbl
+
+def add_thirty_min_columns(tbl):
+	tbl["thirty_min"] = 0
+	tbl["thirty_min"] = np.where(tbl["min"] < 31, "less than 30", "more than 30")
 	return tbl
