@@ -75,11 +75,11 @@ def transform(tbl):
 	return tbl
 
 def add_day_column(tbl, key="time_received"):
-	tbl["time_received_dt"] = pd.to_datetime(tbl[key])
-	tbl["day"] = tbl["time_received_dt"].dt.day.apply(str)
-	tbl["month"] = tbl["time_received_dt"].dt.month.apply(str)
-	tbl["hour"] = tbl["time_received_dt"].dt.hour.apply(str)
-	tbl["min"] = tbl["time_received_dt"].dt.minute
+	tbl[key+"_dt"] = pd.to_datetime(tbl[key])
+	tbl["day"] = tbl[key+"_dt"].dt.day.apply(str)
+	tbl["month"] = tbl[key+"_dt"].dt.month.apply(str)
+	tbl["hour"] = tbl[key+"_dt"].dt.hour.apply(str)
+	tbl["min"] = tbl[key+"_dt"].dt.minute
 	return tbl
 
 def add_thirty_min_columns(tbl):

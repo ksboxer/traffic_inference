@@ -38,7 +38,8 @@ def add_time_table(network):
 			traffic_data = network[stop].incoming_traffic[previous_stop]
 			#print(traffic_data)
 			network[stop].build_time_def_table()
-			network[stop].add_stats()
+			#network[stop].add_stats()
+		
 
 
 
