@@ -1,4 +1,4 @@
-date: "2014-09-30"
+date: "2014-10-01"
 fake_today: 2014-09-30
 
 raw_data_path: "data/extracted_data"
@@ -11,4 +11,7 @@ vehicle_id: 7600
 two_segments: True
 extension: '_twosegments'
 
-network_date: '2014-09-30'
+network_date: '2014-10-02'
+
+training_date: '2014-09-30'
+testing_date: '2014-10-02'

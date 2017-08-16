@@ -21,16 +21,17 @@ def main():
 		configs = yaml.load(f)
 	
 	data_tbl = read_in_table(configs)
-	gmap = gmp.from_geocode("New York City")
+	'''gmap = gmp.from_geocode("New York City")
 	gmap.scatter(data_tbl['latitude'], data_tbl['longitude'], '#3B0B39', size=5, marker=False)
 	#gmap.plot(list(tbl['latitude']), tbl['longitude'], 'cornflowerblue', edge_width=10)
 	map_file_name = "full_coverage.html"
 	gmap.draw(map_file_name)
-	mapper.add_key(map_file_name)
+	mapper.add_key(map_file_name)'''
 	#print(data_tbl)
-	'''network  = build_network.build(data_tbl)
+	network  = build_network.build(data_tbl)
+	build_network.add_time_table(network)
 	with open('networks_by_date/network_'+configs['network_date']+'.pickle', 'wb') as f:
-		pickle.dump(network, f, protocol=pickle.HIGHEST_PROTOCOL)'''
+		pickle.dump(network, f, protocol=pickle.HIGHEST_PROTOCOL)
 	
 
 	'''with open('networks_by_date/network_'+configs['network_date']+'.pickle', 'rb') as f:
