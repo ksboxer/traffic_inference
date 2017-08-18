@@ -11,7 +11,7 @@ vehicle_id: 7600
 two_segments: True
 extension: '_twosegments'
 
-network_date: '2014-10-02'
+network_date: '2014-10-01'
 
 training_date: '2014-09-30'
 testing_date: '2014-10-02'
