@@ -15,3 +15,6 @@ network_date: '2014-10-01'
 
 training_date: '2014-09-30'
 testing_date: '2014-10-02'
+
+previous_stop_list: ['MTA_400003', 'MTA_403148', 'MTA_401723', 'MTA_400154']
+stop_list: ['MTA_400007', 'MTA_403149', 'MTA_401724', 'MTA_400157']

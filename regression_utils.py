@@ -53,6 +53,32 @@ def all_previous_segments_build_features(network, stop, previous_stop):
 			return pd.DataFrame(x)
 	return None
 
+def build_features_more_history(network,stop,previous_stop):
+	duration_tbl = network[stop].incoming_traffic[previous_stop]['duration_table']
+	duration_tbl = duration_tbl.sort_values(['start_time'])
+	duration_tbl = data_utils.add_day_column(duration_tbl, 'start_time')
+		
+	x = []
+	for idx, row in duration_tbl.iterrows():
+		duration_tbl_ten_before = duration_tbl[(duration_tbl['start_time_dt'] > (row["start_time_dt"]  - datetime.timedelta(minutes=10))) & (duration_tbl['start_time_dt'] < (row["start_time_dt"]  ))]
+		duration_tbl_twenty_before = duration_tbl[(duration_tbl['start_time_dt'] > (row["start_time_dt"]  - datetime.timedelta(minutes=20))) & (duration_tbl['start_time_dt'] < (row["start_time_dt"]  - datetime.timedelta(minutes=10)))]
+		duration_tbl_thirty_before = duration_tbl[(duration_tbl['start_time_dt'] > (row["start_time_dt"]  - datetime.timedelta(minutes=30))) & (duration_tbl['start_time_dt'] < (row["start_time_dt"]  - datetime.timedelta(minutes=20)))]
+		duration_tbl_forty_before = duration_tbl[(duration_tbl['start_time_dt'] > (row["start_time_dt"]  - datetime.timedelta(minutes=40))) & (duration_tbl['start_time_dt'] < (row["start_time_dt"]  - datetime.timedelta(minutes=30)))]
+		duration_tbl_fifty_before = duration_tbl[(duration_tbl['start_time_dt'] > (row["start_time_dt"]  - datetime.timedelta(minutes=50))) & (duration_tbl['start_time_dt'] < (row["start_time_dt"]  - datetime.timedelta(minutes=40)))]
+		
+		if len(duration_tbl_ten_before) > 0 and len(duration_tbl_twenty_before) > 0 and len(duration_tbl_thirty_before)> 0 and len(duration_tbl_forty_before) and len(duration_tbl_fifty_before)> 0:
+			res = {'duration_t_minus_10': duration_tbl_ten_before.iloc[0]['duration'].total_seconds(), 
+					'duration_t_minus_20': duration_tbl_twenty_before.iloc[0]['duration'].total_seconds(),
+					'duration_t_minus_30': duration_tbl_thirty_before.iloc[0]['duration'].total_seconds(),
+					'duration_t_minus_40': duration_tbl_forty_before.iloc[0]['duration'].total_seconds(),
+					'duration_t_minus_50': duration_tbl_fifty_before.iloc[0]['duration'].total_seconds(),
+					'label_duration':row['duration'].total_seconds() }
+			x.append(res)
+	return pd.DataFrame(x)
+				
+			#duration_twent
+			
+
 def build_features(network, stop, previous_stop, first_stop = None):
 	if 'duration_table' in network[stop].incoming_traffic[previous_stop]:
 		duration_tbl = network[stop].incoming_traffic[previous_stop]['duration_table']
@@ -115,6 +141,18 @@ def first_step_modeling(training, testing):
 
 	return error, clf.coef_, mean_labels, std_labels
 
+
+def first_step_modeling(training, testing):
+	clf = linear_model.LinearRegression()
+	clf.fit(training[['duration_t_minus_1', 'duration_delta']],training['label_duration'])
+	predicted_labels = clf.predict(testing[['duration_t_minus_1', 'duration_delta']])
+
+	error = mean_absolute_error(testing['label_duration'], predicted_labels)
+	mean_labels = testing['label_duration'].mean()
+	std_labels = testing['label_duration'].std()
+
+	return error, clf.coef_, mean_labels, std_labels
+
 def all_segments_modeling(training,testing):
 	#print(testing)
 	clf = linear_model.LinearRegression()
@@ -126,6 +164,34 @@ def all_segments_modeling(training,testing):
 	std_labels = testing['label_duration'].std()
 
 	return error, clf.coef_, mean_labels, std_labels
+
+def iterate_columns_modeling(training, testing):
+	cols_list = list(training)
+	info_dict = {}
+	for i in range(1,len(cols_list)+1):
+		list_features = list(cols_list[0:i])
+		if 'label_duration' in list_features:
+			list_features.remove('label_duration')
+		clf = linear_model.LinearRegression()
+		print(list_features)
+		clf.fit(training[list_features], training[['label_duration']])
+		predicted_labels = clf.predict(testing[list_features])
+
+
+		mean_labels = testing['label_duration'].mean()
+		std_labels = testing['label_duration'].std()
+
+		error = mean_absolute_error(testing['label_duration'], predicted_labels)
+		coef = clf.coef_
+		info_dict[i] = {'mean': mean_labels, 'std': std_labels,'error': error, 'coef': coef, 'cols_used': list_features}
+	return info_dict
+
+def run_configs_stops(network_training, network_testing, stop, previous_stop):
+	training = build_features_more_history(network_training, stop, previous_stop)
+	testing = build_features_more_history(network_testing, stop, previous_stop)
+	#print(first_step_modeling(training, testing))
+	info_dict = iterate_columns_modeling(training, testing)
+	return info_dict
 
 def iterate_stops(network_training, network_testing):
 	count = 0
