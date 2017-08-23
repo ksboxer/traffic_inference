@@ -23,5 +23,12 @@ testing_date: '2014-10-03'
 previous_stop_list: ['MTA_400003', 'MTA_403148', 'MTA_400154', 'MTA_401666', 'MTA_401947', 'MTA_405151', 'MTA_403504']
 stop_list: ['MTA_400007', 'MTA_403149', 'MTA_400157', 'MTA_401667', 'MTA_401948', 'MTA_405152', 'MTA_403505']
 
-duration_history: True
-hour_breakdown: True
+featureset:
+  duration_history: ["duration_t_minus_10", "duration_t_minus_20", "duration_t_minus_30",
+      "duration_t_minus_40", "duration_t_minus_50"]
+  hour_breakdown: ["time_before_6", "time_6_9", "time_9_12", "time_12_16",
+      "time_16_19", "time_19_24"]
+
+
+
+

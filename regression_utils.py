@@ -6,6 +6,7 @@ from sklearn.metrics import mean_absolute_error
 import json
 
 import data_processing
+import regression_features
 
 
 def all_previous_segments_build_features(network, stop, previous_stop):
@@ -176,17 +177,21 @@ def all_segments_modeling(training,testing):
 
 	return error, clf.coef_, mean_labels, std_labels
 
-def iterate_columns_modeling(training, testing):
+def iterate_columns_modeling(training, testing,stop, previous_stop, configs):
 	cols_list = list(training)
-	info_dict = {}
-	for i in range(1,len(cols_list)+1):
-		list_features = list(cols_list[0:i])
-		if 'label_duration' in list_features:
-			list_features.remove('label_duration')
+	info_ = []
+	features_set = regression_features.generate_features_from_configs(configs)
+	for set_ in features_set:
+		print(set_)
 		clf = linear_model.Ridge(alpha = .01)
-		print(list_features)
-		clf.fit(training[list_features], training[['label_duration']])
-		predicted_labels = clf.predict(testing[list_features])
+		if False:
+			#clf = linear_model.Ridge(alpha = .01)
+			clf.fit(training[set_[0]], training[['label_duration']])
+			predicted_labels = clf.predict(testing[set_[0]])
+		else:
+			print(training)
+			clf.fit(training[set_], training[['label_duration']])
+			predicted_labels = clf.predict(testing[set_])
 
 
 		mean_labels = testing['label_duration'].mean()
@@ -194,15 +199,20 @@ def iterate_columns_modeling(training, testing):
 
 		error = mean_absolute_error(testing['label_duration'], predicted_labels)
 		coef = clf.coef_
-		info_dict[i] = {'mean': mean_labels, 'std': std_labels,'error': error, 'coef': coef, 'cols_used': list_features}
-	return info_dict
+		info_.append( {'stop':stop, 'previous_stop': previous_stop, 'mean': mean_labels, 'std': std_labels,'error': error, 'error_percent':error/mean_labels, 'coef': coef, 'cols_used': set_})
+	
+	return info_
 
-def run_configs_stops(network_training, network_testing, stop, previous_stop):
+
+def run_configs_stops(network_training, network_testing, stop, previous_stop, configs):
 	training = build_features_more_history(network_training, stop, previous_stop)
 	testing = build_features_more_history(network_testing, stop, previous_stop)
 	#print(first_step_modeling(training, testing))
-	info_dict = iterate_columns_modeling(training, testing)
-	return info_dict
+	if len(training)> 0 and len(testing) > 0:
+		info_dict = iterate_columns_modeling(training, testing, stop, previous_stop, configs)
+		return info_dict
+	else:
+		return None
 
 def iterate_stops(network_training, network_testing):
 	count = 0

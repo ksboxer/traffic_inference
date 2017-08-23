@@ -9,6 +9,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 import combination
+import json
 
 
 def read_in_table(configs):
@@ -55,10 +56,13 @@ def main():
 
 	#regression_utils.iterate_stops(network_training, network_testing)
 	color = 'bgrmckg'
+	total = []
 	for idx, previous_stop in enumerate(configs['previous_stop_list']):
 		stop = configs['stop_list'][idx]
-		info =  regression_utils.run_configs_stops(network_training, network_testing, stop, previous_stop)
-		points_point_x = list(info.keys())
+		info =  regression_utils.run_configs_stops(network_training, network_testing, stop, previous_stop, configs)
+		if info != None:
+			total = total + info
+		'''points_point_x = list(info.keys())
 		points_point_y = []
 		#print(info)
 		for p in points_point_x:
@@ -67,11 +71,14 @@ def main():
 		print(points_point_x)
 		print(points_point_y)
 		print(info)
-		plt.plot(points_point_x, points_point_y, color[idx]+'-')
+		plt.plot(points_point_x, points_point_y, color[idx]+'-')'''
 
-	plt.savefig('saved_lakshmi_2.png')
+	#plt.savefig('saved_lakshmi_2.png')
 
 	#print(network)
+	data = {'data' : total}
+	with open('whole_data.json', 'w') as f:
+		pickle.dump(data , f)
 
 if __name__ == '__main__':
 	print("hello world... let's not regress...")
