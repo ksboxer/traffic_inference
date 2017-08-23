@@ -11,13 +11,17 @@ vehicle_id: 7600
 two_segments: True
 extension: '_twosegments'
 
-network_date: '2014-10-03'
+network_date: '2014-09-29'
 
-training_date_1: '2014-09-30'
-training_date_2: '2014-10-01'
-training_date_3: '2014-10-02'
+training_date_1: '2014-09-29'
+training_date_2: '2014-09-30'
+training_date_3: '2014-10-01'
+training_date_4: '2014-10-02'
 
 testing_date: '2014-10-03'
 
 previous_stop_list: ['MTA_400003', 'MTA_403148', 'MTA_400154', 'MTA_401666', 'MTA_401947', 'MTA_405151', 'MTA_403504']
 stop_list: ['MTA_400007', 'MTA_403149', 'MTA_400157', 'MTA_401667', 'MTA_401948', 'MTA_405152', 'MTA_403505']
+
+duration_history: True
+hour_breakdown: True

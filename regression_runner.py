@@ -24,16 +24,27 @@ def main():
 
 	print(configs)
 
-	with open('networks_by_date/network_'+configs['training_date_1']+'_with_duration'+'.pickle', 'rb') as f:
+	with open('networks_by_date/network_'+configs['training_date_1']+'.pickle', 'rb') as f:
 		network_training_1 = pickle.load(f)
 
-	with open('networks_by_date/network_'+configs['training_date_2']+'.pickle', 'rb') as f:
-		network_training_2 = pickle.load(f)
-
-	with open('networks_by_date/network_'+configs['training_date_3']+'_with_duration'+'.pickle', 'rb') as f:
+	with open('networks_by_date/network_'+configs['training_date_2']+'_with_duration'+'.pickle', 'rb') as f:
 		network_training_2 = pickle.load(f)
 
 	network_training = combination.combine_two_networks(network_training_1, network_training_2)
+
+
+	with open('networks_by_date/network_'+configs['training_date_3']+'.pickle', 'rb') as f:
+		network_training_2 = pickle.load(f)
+
+
+	network_training = combination.combine_two_networks(network_training_2, network_training)
+
+	with open('networks_by_date/network_'+configs['training_date_4']+'_with_duration'+'.pickle', 'rb') as f:
+		network_training_2 = pickle.load(f)
+
+	network_training = combination.combine_two_networks(network_training_2, network_training)
+
+
 
 	print(network_training)
 

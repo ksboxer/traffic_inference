@@ -5,6 +5,8 @@ from sklearn import linear_model
 from sklearn.metrics import mean_absolute_error
 import json
 
+import data_processing
+
 
 def all_previous_segments_build_features(network, stop, previous_stop):
 	if 'duration_table' in network[stop].incoming_traffic[previous_stop]:
@@ -57,6 +59,8 @@ def build_features_more_history(network,stop,previous_stop):
 	duration_tbl = network[stop].incoming_traffic[previous_stop]['duration_table']
 	duration_tbl = duration_tbl.sort_values(['start_time'])
 	duration_tbl = data_utils.add_day_column(duration_tbl, 'start_time')
+	duration_tbl = data_processing.hour_break_down_general(duration_tbl, 'hour_i', '')
+	print(duration_tbl)
 		
 	x = []
 	for idx, row in duration_tbl.iterrows():
@@ -72,7 +76,14 @@ def build_features_more_history(network,stop,previous_stop):
 					'duration_t_minus_30': duration_tbl_thirty_before.iloc[0]['duration'].total_seconds(),
 					'duration_t_minus_40': duration_tbl_forty_before.iloc[0]['duration'].total_seconds(),
 					'duration_t_minus_50': duration_tbl_fifty_before.iloc[0]['duration'].total_seconds(),
+					'time_before_6': row['time_before_6'],
+					'time_6_9': row['time_6_9'],
+					'time_9_12': row['time_9_12'],
+					'time_12_16': row['time_12_16'],
+					'time_16_19': row['time_16_19'],
+					'time_19_24': row['time_19_24'],
 					'label_duration':row['duration'].total_seconds() }
+
 			x.append(res)
 	return pd.DataFrame(x)
 				
@@ -172,7 +183,7 @@ def iterate_columns_modeling(training, testing):
 		list_features = list(cols_list[0:i])
 		if 'label_duration' in list_features:
 			list_features.remove('label_duration')
-		clf = linear_model.LinearRegression()
+		clf = linear_model.Ridge(alpha = .01)
 		print(list_features)
 		clf.fit(training[list_features], training[['label_duration']])
 		predicted_labels = clf.predict(testing[list_features])
