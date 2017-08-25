@@ -11,8 +11,11 @@ vehicle_id: 7600
 two_segments: True
 extension: '_twosegments'
 
-network_date: '2014-09-28'
+network_date: '2014-09-26'
 
+training_dates: ['2014-09-27','2014-09-28', '2014-09-29', '2014-09-30', '2014-10-01', '2014-10-02']
+
+training_date_-1: '2014-09-27'
 training_date_0: '2014-09-28'
 training_date_1: '2014-09-29'
 training_date_2: '2014-09-30'
@@ -29,6 +32,7 @@ featureset:
       "duration_t_minus_40", "duration_t_minus_50"]
   hour_breakdown: ["time_before_6", "time_6_9", "time_9_12", "time_12_16",
       "time_16_19", "time_19_24"]
+  segments: ['sum_segment_duration', 'mean_segment_duration', 'number_segments', 'std_of_segments']
 
 
 

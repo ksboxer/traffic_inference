@@ -2,6 +2,7 @@
 import itertools
 
 
+
 def generate_features_from_configs(configs):
 	feature_list = []
 	for featureset in configs['featureset']:

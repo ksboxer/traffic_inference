@@ -61,7 +61,7 @@ def build_features_more_history(network,stop,previous_stop):
 	duration_tbl = duration_tbl.sort_values(['start_time'])
 	duration_tbl = data_utils.add_day_column(duration_tbl, 'start_time')
 	duration_tbl = data_processing.hour_break_down_general(duration_tbl, 'hour_i', '')
-	print(duration_tbl)
+	#print(duration_tbl)
 		
 	x = []
 	for idx, row in duration_tbl.iterrows():
@@ -71,7 +71,25 @@ def build_features_more_history(network,stop,previous_stop):
 		duration_tbl_forty_before = duration_tbl[(duration_tbl['start_time_dt'] > (row["start_time_dt"]  - datetime.timedelta(minutes=40))) & (duration_tbl['start_time_dt'] < (row["start_time_dt"]  - datetime.timedelta(minutes=30)))]
 		duration_tbl_fifty_before = duration_tbl[(duration_tbl['start_time_dt'] > (row["start_time_dt"]  - datetime.timedelta(minutes=50))) & (duration_tbl['start_time_dt'] < (row["start_time_dt"]  - datetime.timedelta(minutes=40)))]
 		
-		if len(duration_tbl_ten_before) > 0 and len(duration_tbl_twenty_before) > 0 and len(duration_tbl_thirty_before)> 0 and len(duration_tbl_forty_before) and len(duration_tbl_fifty_before)> 0:
+		temp_res = []
+		for first_stop in network[previous_stop].incoming_traffic:
+			if 'duration_table' in network[previous_stop].incoming_traffic[first_stop]:
+				first_duration_tbl = network[previous_stop].incoming_traffic[first_stop]['duration_table']
+				first_duration_tbl = first_duration_tbl.sort_values(['start_time'])
+				first_duration_tbl = data_utils.add_day_column(first_duration_tbl, 'start_time')
+						
+				first_duration_tbl_ten_before = first_duration_tbl[(first_duration_tbl['start_time_dt'] > (row["start_time_dt"]  - datetime.timedelta(minutes=10))) & (first_duration_tbl['start_time_dt'] < (row["start_time_dt"]  ))]
+				first_duration_tbl_twenty_before = first_duration_tbl[(first_duration_tbl['start_time_dt'] > (row["start_time_dt"]  - datetime.timedelta(minutes=20))) & (first_duration_tbl['start_time_dt'] < (row["start_time_dt"]  - datetime.timedelta(minutes=10)))]
+				if len(first_duration_tbl_ten_before) > 0:
+					res_temp = {'p_duration': first_duration_tbl_ten_before.iloc[0]['duration'].total_seconds()}
+					temp_res.append(res_temp)
+
+		temp_res = pd.DataFrame(temp_res)
+		#temp_res = temp_res.fillna(0)
+
+		#['sum_segment_duration', 'mean_segment_duration', 'number_segments', 'std_of_segments']
+
+		if len(temp_res) >0 and len(duration_tbl_ten_before) > 0 and len(duration_tbl_twenty_before) > 0 and len(duration_tbl_thirty_before)> 0 and len(duration_tbl_forty_before) and len(duration_tbl_fifty_before)> 0:
 			res = {'duration_t_minus_10': duration_tbl_ten_before.iloc[0]['duration'].total_seconds(), 
 					'duration_t_minus_20': duration_tbl_twenty_before.iloc[0]['duration'].total_seconds(),
 					'duration_t_minus_30': duration_tbl_thirty_before.iloc[0]['duration'].total_seconds(),
@@ -83,10 +101,16 @@ def build_features_more_history(network,stop,previous_stop):
 					'time_12_16': row['time_12_16'],
 					'time_16_19': row['time_16_19'],
 					'time_19_24': row['time_19_24'],
-					'label_duration':row['duration'].total_seconds() }
+					'label_duration':row['duration'].total_seconds() ,
+					'sum_segment_duration': temp_res['p_duration'].sum(),
+					'mean_segment_duration': temp_res['p_duration'].mean(),
+					'number_segments': temp_res['p_duration'].count(),
+					'std_of_segments': temp_res['p_duration'].std()}
 
 			x.append(res)
-	return pd.DataFrame(x)
+	fin  = pd.DataFrame(x)
+	fin = fin.fillna(0)
+	return fin
 				
 			#duration_twent
 			
@@ -177,19 +201,18 @@ def all_segments_modeling(training,testing):
 
 	return error, clf.coef_, mean_labels, std_labels
 
-def iterate_columns_modeling(training, testing,stop, previous_stop, configs):
+def iterate_columns_modeling(training, testing,stop, previous_stop, configs, features_set):
 	cols_list = list(training)
 	info_ = []
-	features_set = regression_features.generate_features_from_configs(configs)
-	for set_ in features_set:
-		print(set_)
+	for idx, set_ in enumerate(features_set):
+		print('{}/{}: {}'.format(idx, len(features_set), set_))
 		clf = linear_model.Ridge(alpha = .01)
 		if False:
 			#clf = linear_model.Ridge(alpha = .01)
 			clf.fit(training[set_[0]], training[['label_duration']])
 			predicted_labels = clf.predict(testing[set_[0]])
 		else:
-			print(training)
+			#print(training)
 			clf.fit(training[set_], training[['label_duration']])
 			predicted_labels = clf.predict(testing[set_])
 
@@ -199,17 +222,17 @@ def iterate_columns_modeling(training, testing,stop, previous_stop, configs):
 
 		error = mean_absolute_error(testing['label_duration'], predicted_labels)
 		coef = clf.coef_
-		info_.append( {'stop':stop, 'previous_stop': previous_stop, 'mean': mean_labels, 'std': std_labels,'error': error, 'error_percent':error/mean_labels, 'coef': coef, 'cols_used': set_})
+		info_.append( {'training_samples': len(training), 'testing_samples': len(testing), 'stop':stop, 'previous_stop': previous_stop, 'mean': mean_labels, 'std': std_labels,'error': error, 'error_percent':error/mean_labels, 'coef': coef, 'cols_used': set_})
 	
 	return info_
 
 
-def run_configs_stops(network_training, network_testing, stop, previous_stop, configs):
+def run_configs_stops(network_training, network_testing, stop, previous_stop, configs, features_set):
 	training = build_features_more_history(network_training, stop, previous_stop)
 	testing = build_features_more_history(network_testing, stop, previous_stop)
 	#print(first_step_modeling(training, testing))
 	if len(training)> 0 and len(testing) > 0:
-		info_dict = iterate_columns_modeling(training, testing, stop, previous_stop, configs)
+		info_dict = iterate_columns_modeling(training, testing, stop, previous_stop, configs,features_set)
 		return info_dict
 	else:
 		return None

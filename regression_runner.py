@@ -10,6 +10,11 @@ import matplotlib.pyplot as plt
 
 import combination
 import json
+import pandas as pd
+pd.set_option('display.max_colwidth', -1)
+
+import time
+import regression_features
 
 
 def read_in_table(configs):
@@ -27,34 +32,9 @@ def main():
 
 
 
-	with open('networks_by_date/network_'+configs['training_date_1']+'.pickle', 'rb') as f:
-		network_training_1 = pickle.load(f)
-
-	with open('networks_by_date/network_'+configs['training_date_2']+'_with_duration'+'.pickle', 'rb') as f:
-		network_training_2 = pickle.load(f)
-
-	network_training = combination.combine_two_networks(network_training_1, network_training_2)
-
-	with open('networks_by_date/network_'+configs['training_date_0']+'.pickle', 'rb') as f:
-		network_training_2 = pickle.load(f)
-
-	network_training = combination.combine_two_networks(network_training, network_training_2)
+	network_training = combination.combine_list_of_networks(configs)
 
 
-	with open('networks_by_date/network_'+configs['training_date_3']+'.pickle', 'rb') as f:
-		network_training_2 = pickle.load(f)
-
-
-	network_training = combination.combine_two_networks(network_training_2, network_training)
-
-	with open('networks_by_date/network_'+configs['training_date_4']+'_with_duration'+'.pickle', 'rb') as f:
-		network_training_2 = pickle.load(f)
-
-	network_training = combination.combine_two_networks(network_training_2, network_training)
-
-
-
-	print(network_training)
 
 
 	with open('networks_by_date/network_'+configs['testing_date']+'.pickle', 'rb') as f:
@@ -62,11 +42,12 @@ def main():
 		
 
 	#regression_utils.iterate_stops(network_training, network_testing)
-	color = 'bgrmckg'
+	#color = 'bgrmckg'
 	total = []
+	features_set = regression_features.generate_features_from_configs(configs)
 	for idx, previous_stop in enumerate(configs['previous_stop_list']):
 		stop = configs['stop_list'][idx]
-		info =  regression_utils.run_configs_stops(network_training, network_testing, stop, previous_stop, configs)
+		info =  regression_utils.run_configs_stops(network_training, network_testing, stop, previous_stop, configs, features_set)
 		if info != None:
 			total = total + info
 		'''points_point_x = list(info.keys())
@@ -83,9 +64,21 @@ def main():
 	#plt.savefig('saved_lakshmi_2.png')
 
 	#print(network)
-	data = {'data' : total}
-	with open('whole_data.json', 'w') as f:
-		pickle.dump(data , f)
+
+	mins = pd.DataFrame()
+	df = pd.DataFrame(total)
+	groups = df.groupby(['stop','previous_stop'], as_index = False,group_keys = False)
+	for name, group in groups:
+		min_percent = group['error_percent'].min()
+		print(min_percent)
+		print(group[group['error_percent'] == min_percent])
+		mins =mins.append(group[group['error_percent'] == min_percent])
+	
+	html = mins.to_html()
+	print(html)
+	ts = time.time()
+	with open('regression_results_2/res'+str(ts)+'.html', "w") as file:
+		file.write(html)
 
 if __name__ == '__main__':
 	print("hello world... let's not regress...")
