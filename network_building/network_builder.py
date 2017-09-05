@@ -1,5 +1,6 @@
 import yaml
 import sys
+sys.path.append('..')
 import data_loader_utils
 from datetime import datetime
 import build_network

@@ -8,6 +8,11 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+import os, sys
+
+lib_path = os.path.abspath('./utils')
+sys.path.insert(0,lib_path)
+
 import combination
 import json
 import pandas as pd

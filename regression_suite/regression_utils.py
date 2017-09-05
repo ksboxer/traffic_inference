@@ -1,4 +1,9 @@
 import pandas as pd
+import os, sys
+
+lib_path = os.path.abspath('./utils')
+sys.path.insert(0,lib_path)
+
 import data_utils
 import datetime
 from sklearn import linear_model

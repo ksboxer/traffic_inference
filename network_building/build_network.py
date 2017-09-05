@@ -1,4 +1,13 @@
+import os, sys
+lib_path = os.path.abspath('./utils')
+sys.path.insert(0,lib_path)
+
+
 import data_utils 
+
+lib_path = os.path.abspath('./')
+sys.path.insert(0,lib_path)
+
 import bus_stop
 
 def build(data_tbl):
