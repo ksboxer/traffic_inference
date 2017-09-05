@@ -32,14 +32,10 @@ def main():
 
 
 
-	network_training = combination.combine_list_of_networks(configs)
+	network_training = combination.combine_list_of_networks(configs, 'training_dates')
 
 
-
-
-	with open('networks_by_date/network_'+configs['testing_date']+'.pickle', 'rb') as f:
-		network_testing = pickle.load(f)
-		
+	network_testing = combination.combine_list_of_networks(configs, 'testing_dates')
 
 	#regression_utils.iterate_stops(network_training, network_testing)
 	#color = 'bgrmckg'

@@ -58,6 +58,8 @@ def all_previous_segments_build_features(network, stop, previous_stop):
 
 def build_features_more_history(network,stop,previous_stop):
 	duration_tbl = network[stop].incoming_traffic[previous_stop]['duration_table']
+	#print(duration_tbl)
+	#duration_tbl = duration_tbl[duration_tbl['inferred_phase'] == 'IN_PROGRESS']
 	duration_tbl = duration_tbl.sort_values(['start_time'])
 	duration_tbl = data_utils.add_day_column(duration_tbl, 'start_time')
 	duration_tbl = data_processing.hour_break_down_general(duration_tbl, 'hour_i', '')
@@ -75,6 +77,7 @@ def build_features_more_history(network,stop,previous_stop):
 		for first_stop in network[previous_stop].incoming_traffic:
 			if 'duration_table' in network[previous_stop].incoming_traffic[first_stop]:
 				first_duration_tbl = network[previous_stop].incoming_traffic[first_stop]['duration_table']
+				#first_duration_tbl = first_duration_tbl[first_duration_tbl['inferred_phase'] == 'IN_PROGRESS']
 				first_duration_tbl = first_duration_tbl.sort_values(['start_time'])
 				first_duration_tbl = data_utils.add_day_column(first_duration_tbl, 'start_time')
 						
