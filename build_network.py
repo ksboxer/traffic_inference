@@ -10,6 +10,7 @@ def build(data_tbl):
 	data_tbl["inferred_route_id_c"] = data_tbl["inferred_route_id"]
 	data_tbl["inferred_trip_id_c"] = data_tbl["inferred_trip_id"]
 	data_tbl["vehicle_id_c"] = data_tbl["vehicle_id"]
+	data_tbl = data_tbl[data_tbl["inferred_phase"] == 'IN_PROGRESS']
 
 	groups = data_tbl.groupby(["inferred_route_id","inferred_trip_id", "vehicle_id"])
 	

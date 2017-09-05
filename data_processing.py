@@ -21,6 +21,15 @@ def hour_break_down(tbl):
 	return tbl
 
 def hour_break_down_general(tbl, hour_key, features_ext):
+
+	tbl["time_before_6"+features_ext] = 1
+	tbl["time_6_9"+features_ext] = 1
+	tbl["time_9_12"+features_ext] = 1
+	tbl["time_12_16"+features_ext] = 1
+	tbl["time_16_19"+features_ext] = 1
+	tbl["time_19_24"+features_ext] = 1
+	
+
 	tbl["time_before_6"+features_ext] = (tbl[hour_key] <6).astype(int)
 	tbl["time_6_9"+features_ext] = ((tbl[hour_key] >= 6) & (tbl[hour_key] < 9)).astype(int)
 	tbl["time_9_12"+features_ext] = ((tbl[hour_key] >= 9) & (tbl[hour_key] < 12)).astype(int)

@@ -79,6 +79,7 @@ def add_day_column(tbl, key="time_received"):
 	tbl["day"] = tbl[key+"_dt"].dt.day.apply(str)
 	tbl["month"] = tbl[key+"_dt"].dt.month.apply(str)
 	tbl["hour"] = tbl[key+"_dt"].dt.hour.apply(str)
+	tbl["hour_i"] = tbl[key+"_dt"].dt.hour
 	tbl["min"] = tbl[key+"_dt"].dt.minute
 	return tbl
 
