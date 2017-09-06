@@ -13,6 +13,21 @@ import json
 import data_processing
 import regression_features
 
+from sklearn.utils.validation import check_array
+import numpy as np
+
+from scipy.stats import pearsonr
+
+def mean_absolute_percentage_error(y_true, y_pred): 
+    y_true = check_array(y_true)
+    y_pred = check_array(y_pred)
+
+    ## Note: does not handle mix 1d representation
+    #if _is_1d(y_true): 
+    #    y_true, y_pred = _check_1d_array(y_true, y_pred)
+
+    return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
+
 
 def all_previous_segments_build_features(network, stop, previous_stop):
 	if 'duration_table' in network[stop].incoming_traffic[previous_stop]:
@@ -180,22 +195,13 @@ def first_step_modeling(training, testing):
 	predicted_labels = clf.predict(testing[['duration_t_minus_1', 'duration_delta']])
 
 	error = mean_absolute_error(testing['label_duration'], predicted_labels)
+	mape = mean_absolute_percentage_error(testing['label_duration'], predicted_labels)
 	mean_labels = testing['label_duration'].mean()
 	std_labels = testing['label_duration'].std()
 
-	return error, clf.coef_, mean_labels, std_labels
+	return error, clf.coef_, mean_labels, std_labels, mape
 
 
-def first_step_modeling(training, testing):
-	clf = linear_model.LinearRegression()
-	clf.fit(training[['duration_t_minus_1', 'duration_delta']],training['label_duration'])
-	predicted_labels = clf.predict(testing[['duration_t_minus_1', 'duration_delta']])
-
-	error = mean_absolute_error(testing['label_duration'], predicted_labels)
-	mean_labels = testing['label_duration'].mean()
-	std_labels = testing['label_duration'].std()
-
-	return error, clf.coef_, mean_labels, std_labels
 
 def all_segments_modeling(training,testing):
 	#print(testing)
@@ -209,7 +215,27 @@ def all_segments_modeling(training,testing):
 
 	return error, clf.coef_, mean_labels, std_labels
 
-def iterate_columns_modeling(training, testing,stop, previous_stop, configs, features_set):
+def correlation_columns_(training, testing, stop, previous_stop, configs):
+	cols_list = list(training)
+
+	correlation_list = []
+
+	for col in cols_list:
+		r_training = pearsonr(training[col], training['label_duration'])
+		r_testing = pearsonr(testing[col], testing['label_duration'])
+
+		correlation_list.append({'stop': stop, 'previous_stop': previous_stop, 'cols_used': col, 'r_training': r_training, 'r_testing':r_testing})
+
+	return correlation_list
+
+
+def iterate_columns_modeling(training, testing,stop, previous_stop, configs, features_set, correlation_columns):
+
+	correlation_info_ = None
+	if correlation_columns:
+		correlation_info_ = correlation_columns_(training, testing, stop , previous_stop, configs)
+
+
 	cols_list = list(training)
 	info_ = []
 	for idx, set_ in enumerate(features_set):
@@ -229,18 +255,20 @@ def iterate_columns_modeling(training, testing,stop, previous_stop, configs, fea
 		std_labels = testing['label_duration'].std()
 
 		error = mean_absolute_error(testing['label_duration'], predicted_labels)
+		mape = mean_absolute_percentage_error(testing['label_duration'], predicted_labels)
 		coef = clf.coef_
-		info_.append( {'training_samples': len(training), 'testing_samples': len(testing), 'stop':stop, 'previous_stop': previous_stop, 'mean': mean_labels, 'std': std_labels,'error': error, 'error_percent':error/mean_labels, 'coef': coef, 'cols_used': set_})
-	
-	return info_
+		info_.append( {'training_samples': len(training), 'testing_samples': len(testing), 'stop':stop, 'previous_stop': previous_stop, 'mean': mean_labels, 'std': std_labels,'error': error, 'error_percent':error/mean_labels, 'coef': coef, 'cols_used': set_, 'mape':mape})
+
+	return info_, correlation_info_
 
 
-def run_configs_stops(network_training, network_testing, stop, previous_stop, configs, features_set):
+
+def run_configs_stops(network_training, network_testing, stop, previous_stop, configs, features_set, correlation_columns = False):
 	training = build_features_more_history(network_training, stop, previous_stop)
 	testing = build_features_more_history(network_testing, stop, previous_stop)
 	#print(first_step_modeling(training, testing))
 	if len(training)> 0 and len(testing) > 0:
-		info_dict = iterate_columns_modeling(training, testing, stop, previous_stop, configs,features_set)
+		info_dict = iterate_columns_modeling(training, testing, stop, previous_stop, configs,features_set, correlation_columns)
 		return info_dict
 	else:
 		return None
@@ -255,7 +283,7 @@ def iterate_stops(network_training, network_testing):
 				training = build_features(network_training, stop, previous_stop)
 				testing = build_features(network_testing, stop, previous_stop)
 				if training is not None and testing is not None and  len(training) > 0 and len(testing) > 0:
-					error, coef, mean, std = first_step_modeling(training, testing)
+					error, coef, mean, std, mape = first_step_modeling(training, testing)
 					res['one_segment'] = {}
 					res['one_segment']['error'.format(previous_stop, stop)] = error
 					res['one_segment']['coef'.format(previous_stop, stop)] = coef.tolist()
