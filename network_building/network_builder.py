@@ -1,6 +1,8 @@
 import yaml
-import sys
-sys.path.append('..')
+import sys,os
+lib_path = os.path.abspath('./utils')
+sys.path.insert(0,lib_path)
+
 import data_loader_utils
 from datetime import datetime
 import build_network

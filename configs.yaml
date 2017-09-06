@@ -1,25 +1,29 @@
 date: "2014-10-01"
 fake_today: 2014-09-30
 
+
+##################################### DATA PATH
+
 raw_data_path: "data/extracted_data"
 
-route: "MTA NYCT_M101"
-next_stop_id: "MTA_402772"
-inferred_date: "Weekday"
-vehicle_id: 7600
 
-two_segments: True
-extension: '_twosegments'
+##################################### NETWORK BUILDING INFORMATION
 
-network_date: '2014-09-21'
+network_date: '2014-09-20'
 
-training_dates: ['2014-09-22','2014-09-23','2014-09-24','2014-09-25','2014-09-26','2014-09-27','2014-09-28', '2014-09-29', '2014-09-30', '2014-10-01']
+##################################### REGRESSION SETTING
+
+training_dates: ['2014-09-21','2014-09-22','2014-09-23',
+  '2014-09-24','2014-09-25','2014-09-26',
+  '2014-09-27','2014-09-28', '2014-09-29', 
+  '2014-09-30', '2014-10-01']
 
 
 testing_dates: ['2014-10-02','2014-10-03']
 
-previous_stop_list: ['MTA_400003', 'MTA_403148', 'MTA_400154', 'MTA_401666', 'MTA_401947', 'MTA_405151', 'MTA_403504']
-stop_list: ['MTA_400007', 'MTA_403149', 'MTA_400157', 'MTA_401667', 'MTA_401948', 'MTA_405152', 'MTA_403505']
+previous_stop_list: ['MTA_400003', 'MTA_403148', 'MTA_400154', 'MTA_401666', 'MTA_401947', 'MTA_405151', 'MTA_403504', 'MTA_400046', 'MTA_402223', 'MTA_403893','MTA_903145', 'MTA_404920','MTA_403246']
+
+stop_list: ['MTA_400007', 'MTA_403149', 'MTA_400157','MTA_401667', 'MTA_401948', 'MTA_405152','MTA_403505', 'MTA_400047', 'MTA_402224','MTA_403894', 'MTA_903146', 'MTA_404921','MTA_403247']
 
 featureset:
   duration_history: ["duration_t_minus_10", "duration_t_minus_20", "duration_t_minus_30",
