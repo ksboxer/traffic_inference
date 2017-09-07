@@ -45,12 +45,15 @@ def main():
 	#regression_utils.iterate_stops(network_training, network_testing)
 	#color = 'bgrmckg'
 	total = []
+	cor_tol = []
 	features_set = regression_features.generate_features_from_configs(configs)
 	for idx, previous_stop in enumerate(configs['previous_stop_list']):
 		stop = configs['stop_list'][idx]
-		info =  regression_utils.run_configs_stops(network_training, network_testing, stop, previous_stop, configs, features_set)
+		info, cor_info =  regression_utils.run_configs_stops(network_training, network_testing, stop, previous_stop, configs, features_set, True)
 		if info != None:
 			total = total + info
+		if cor_info != None:
+			cor_tol = cor_tol + cor_info
 		'''points_point_x = list(info.keys())
 		points_point_y = []
 		#print(info)
@@ -70,16 +73,24 @@ def main():
 	df = pd.DataFrame(total)
 	groups = df.groupby(['stop','previous_stop'], as_index = False,group_keys = False)
 	for name, group in groups:
-		min_percent = group['error_percent'].min()
+		min_percent = group['mape'].min()
 		print(min_percent)
-		print(group[group['error_percent'] == min_percent])
-		mins =mins.append(group[group['error_percent'] == min_percent])
+		print(group[group['mape'] == min_percent])
+		mins =mins.append(group[group['mape'] == min_percent])
 	
 	html = mins.to_html()
 	print(html)
 	ts = time.time()
 	with open('regression_results_2/res'+str(ts)+'.html', "w") as file:
 		file.write(html)
+
+	df = pd.DataFrame(cor_tol)
+	html = df.to_html()
+	print(html)
+	ts = time.time()
+	with open('correlation_stats/cor'+str(ts)+'.html', "w") as file:
+		file.write(html)
+
 
 if __name__ == '__main__':
 	print("hello world... let's not regress...")
