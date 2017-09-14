@@ -268,10 +268,10 @@ def run_configs_stops(network_training, network_testing, stop, previous_stop, co
 	testing = build_features_more_history(network_testing, stop, previous_stop)
 	#print(first_step_modeling(training, testing))
 	if len(training)> 0 and len(testing) > 0:
-		info_dict = iterate_columns_modeling(training, testing, stop, previous_stop, configs,features_set, correlation_columns)
-		return info_dict
+		info_dict, correlation_info_ = iterate_columns_modeling(training, testing, stop, previous_stop, configs,features_set, correlation_columns)
+		return info_dict,correlation_info_
 	else:
-		return None
+		return None, None
 
 def iterate_stops(network_training, network_testing):
 	count = 0

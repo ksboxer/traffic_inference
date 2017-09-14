@@ -36,12 +36,27 @@ def main():
 	print(configs)
 
 
+	with open('training_full.pickle', 'rb') as f:
+		network_training = pickle.load(f)
 
-	network_training = combination.combine_list_of_networks(configs, 'training_dates')
+	with open('testing_full.pickle', 'rb') as f:
+		network_testing = pickle.load(f)
+
+
+	#network_training = combination.combine_list_of_networks(configs, 'training_dates')
+
+	'''print('saving training')
+	with open('training_full.pickle', 'wb') as handle:
+		pickle.dump(network_training, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 	network_testing = combination.combine_list_of_networks(configs, 'testing_dates')
 
+	print('saving testing')
+	with open('testing_full.pickle', 'wb') as handle:
+		pickle.dump(network_testing, handle, protocol=pickle.HIGHEST_PROTOCOL)
+	'''
+	
 	#regression_utils.iterate_stops(network_training, network_testing)
 	#color = 'bgrmckg'
 	total = []
