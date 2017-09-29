@@ -14,6 +14,7 @@ import data_processing
 import regression_features
 
 from sklearn.utils.validation import check_array
+from sklearn.ensemble import RandomForestRegressor
 import numpy as np
 
 from scipy.stats import pearsonr
@@ -240,7 +241,7 @@ def iterate_columns_modeling(training, testing,stop, previous_stop, configs, fea
 	info_ = []
 	for idx, set_ in enumerate(features_set):
 		print('{}/{}: {}'.format(idx, len(features_set), set_))
-		clf = linear_model.Ridge(alpha = .01)
+		clf = RandomForestRegressor(n_estimators  = 50)
 		if False:
 			#clf = linear_model.Ridge(alpha = .01)
 			clf.fit(training[set_[0]], training[['label_duration']])
@@ -256,7 +257,8 @@ def iterate_columns_modeling(training, testing,stop, previous_stop, configs, fea
 
 		error = mean_absolute_error(testing['label_duration'], predicted_labels)
 		mape = mean_absolute_percentage_error(testing['label_duration'], predicted_labels)
-		coef = clf.coef_
+		#coef = clf.coef_
+		coef = [0,0,0,0]
 		info_.append( {'training_samples': len(training), 'testing_samples': len(testing), 'stop':stop, 'previous_stop': previous_stop, 'mean': mean_labels, 'std': std_labels,'error': error, 'error_percent':error/mean_labels, 'coef': coef, 'cols_used': set_, 'mape':mape})
 
 	return info_, correlation_info_
