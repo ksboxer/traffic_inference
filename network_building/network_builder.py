@@ -7,8 +7,8 @@ import data_loader_utils
 from datetime import datetime
 import build_network
 import pickle
-import mapping
-from gmplot import GoogleMapPlotter as gmp
+#import mapping
+#from gmplot import GoogleMapPlotter as gmp
 
 def read_in_table(configs, date):
 	file = 'MTA-Bus-Time_.'+date+'.txt'

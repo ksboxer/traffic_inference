@@ -2,10 +2,15 @@ import pandas as pd
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import seaborn as sns
+#import seaborn as sns
 import matplotlib.dates as mdates
 import numpy as np
 import time
+import os, sys
+
+lib_path = os.path.abspath('utils')
+sys.path.insert(0,lib_path)
+
 import data_utils
 import json
 
