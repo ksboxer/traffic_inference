@@ -36,14 +36,14 @@ def main():
 	print(configs)
 
 
-	'''with open('training_full.pickle', 'rb') as f:
+	with open('training_full.pickle', 'rb') as f:
 		network_training = pickle.load(f)
 
 	with open('testing_full.pickle', 'rb') as f:
-		network_testing = pickle.load(f)'''
+		network_testing = pickle.load(f)
 
 
-	network_training = combination.combine_list_of_networks(configs, 'training_dates')
+	'''network_training = combination.combine_list_of_networks(configs, 'training_dates')
 
 	print('saving training')
 	with open('training_full.pickle', 'wb') as handle:
@@ -54,7 +54,7 @@ def main():
 
 	print('saving testing')
 	with open('testing_full.pickle', 'wb') as handle:
-		pickle.dump(network_testing, handle, protocol=pickle.HIGHEST_PROTOCOL)
+		pickle.dump(network_testing, handle, protocol=pickle.HIGHEST_PROTOCOL)'''
 
 	
 	#regression_utils.iterate_stops(network_training, network_testing)
@@ -64,7 +64,7 @@ def main():
 	features_set = regression_features.generate_features_from_configs(configs)
 	for idx, previous_stop in enumerate(configs['previous_stop_list']):
 		stop = configs['stop_list'][idx]
-		info, cor_info =  regression_utils.run_configs_stops(network_training, network_testing, stop, previous_stop, configs, features_set, True)
+		info, cor_info =  regression_utils.run_configs_stops(network_training, network_testing, stop, previous_stop, configs, features_set, True, configs["classification"])
 		if info != None:
 			total = total + info
 		if cor_info != None:
@@ -86,24 +86,33 @@ def main():
 
 	mins = pd.DataFrame()
 	df = pd.DataFrame(total)
+	print(df)
+	print(list(df))
 	groups = df.groupby(['stop','previous_stop'], as_index = False,group_keys = False)
 	for name, group in groups:
-		min_percent = group['mape'].min()
-		print(min_percent)
-		print(group[group['mape'] == min_percent])
-		mins =mins.append(group[group['mape'] == min_percent])
+		if configs["classification"]:
+			min_percent = group['accuracy'].max()
+			print(min_percent)
+			print(group[group['accuracy'] == min_percent])
+			mins =mins.append(group[group['accuracy'] == min_percent])
+		else:
+			min_percent = group['mape'].min()
+                        print(min_percent)
+                        print(group[group['mape'] == min_percent])
+                        mins =mins.append(group[group['mape'] == min_percent])
 	
-	html = mins.to_html()
+	html = mins.to_json(orient='index')
 	print(html)
 	ts = time.time()
-	with open('regression_results_2/res'+str(ts)+'.html', "w") as file:
+	with open('regression_results_3/res_class'+str(configs['classification'])+'_'+str(ts)+'.html', "w") as file:
 		file.write(html)
 
 	df = pd.DataFrame(cor_tol)
+	html = mins.to_json(orient='index')
 	html = df.to_html()
 	print(html)
 	ts = time.time()
-	with open('correlation_stats/cor'+str(ts)+'.html', "w") as file:
+	with open('correlation_stats_3/cor'+str(ts)+'.html', "w") as file:
 		file.write(html)
 
 
