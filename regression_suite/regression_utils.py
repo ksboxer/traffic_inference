@@ -15,6 +15,10 @@ import regression_features
 
 from sklearn.utils.validation import check_array
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.svm import SVC
+
+from sklearn.metrics import accuracy_score
+
 import numpy as np
 
 from scipy.stats import pearsonr
@@ -229,8 +233,28 @@ def correlation_columns_(training, testing, stop, previous_stop, configs):
 
 	return correlation_list
 
+def transform_classification(training, testing):
+	p_25 = np.percentile(training, 25)
+	p_50 = np.percentile(training, 50)
+	p_75 = np.percentile(training, 75)
 
-def iterate_columns_modeling(training, testing,stop, previous_stop, configs, features_set, correlation_columns):
+	temp_training = training.copy()
+	temp_testing = testing.copy()
+	
+	temp_training[temp_training < p_25] = 0
+	temp_training[(temp_training < p_50) & (temp_training >= p_25)] = 1
+	temp_training[(temp_training < p_75) & (temp_training >= p_50)] = 2
+	temp_training[(temp_training >= p_75)] = 3
+
+	temp_testing[temp_testing < p_25] = 0
+        temp_testing[(temp_testing < p_50) & (temp_testing >= p_25)] = 1
+        temp_testing[(temp_testing < p_75) & (temp_testing >= p_50)] = 2
+        temp_testing[(temp_testing >= p_75)] = 3
+
+	return temp_training, temp_testing
+
+
+def iterate_columns_modeling(training, testing,stop, previous_stop, configs, features_set, correlation_columns, classification):
 
 	correlation_info_ = None
 	if correlation_columns:
@@ -241,36 +265,37 @@ def iterate_columns_modeling(training, testing,stop, previous_stop, configs, fea
 	info_ = []
 	for idx, set_ in enumerate(features_set):
 		print('{}/{}: {}'.format(idx, len(features_set), set_))
-		clf = RandomForestRegressor(n_estimators  = 50)
-		if False:
-			#clf = linear_model.Ridge(alpha = .01)
-			clf.fit(training[set_[0]], training[['label_duration']])
-			predicted_labels = clf.predict(testing[set_[0]])
-		else:
-			#print(training)
-			clf.fit(training[set_], training[['label_duration']])
+		training_labels = training[['label_duration']]
+		testing_labels = testing[['label_duration']]
+		mean_labels = testing_labels.mean()
+                std_labels =  testing_labels.std()
+
+		if classification:
+			training_labels, testing_labels = transform_classification(training[['label_duration']], testing[['label_duration']])
+			clf = SVC()
+			clf.fit(training[set_], training_labels)
 			predicted_labels = clf.predict(testing[set_])
-
-
-		mean_labels = testing['label_duration'].mean()
-		std_labels = testing['label_duration'].std()
-
-		error = mean_absolute_error(testing['label_duration'], predicted_labels)
-		mape = mean_absolute_percentage_error(testing['label_duration'], predicted_labels)
-		#coef = clf.coef_
-		coef = [0,0,0,0]
-		info_.append( {'training_samples': len(training), 'testing_samples': len(testing), 'stop':stop, 'previous_stop': previous_stop, 'mean': mean_labels, 'std': std_labels,'error': error, 'error_percent':error/mean_labels, 'coef': coef, 'cols_used': set_, 'mape':mape})
+			accuracy = accuracy_score(testing_labels, predicted_labels)
+                        info_.append( {'training_samples': len(training), 'testing_samples': len(testing), 'stop':stop, 'previous_stop': previous_stop, 'mean': mean_labels, 'std': std_labels,'accuracy': accuracy, 'cols_used': set_})
+		else:
+			clf = linear_model.LinearRegression()
+			clf.fit(training[set_], training_labels)
+			predicted_labels = clf.predict(testing[set_])	
+			error = mean_absolute_error(testing['label_duration'], predicted_labels)
+			mape = mean_absolute_percentage_error(testing['label_duration'], predicted_labels)
+			coef = clf.coef_
+			info_.append({'training_samples': len(training), 'testing_samples': len(testing), 'stop':stop, 'previous_stop': previous_stop, 'mean': mean_labels, 'std': std_labels,'error': error, 'error_percent':error/mean_labels, 'coef': coef, 'cols_used': set_, 'mape':mape})
 
 	return info_, correlation_info_
 
 
 
-def run_configs_stops(network_training, network_testing, stop, previous_stop, configs, features_set, correlation_columns = False):
+def run_configs_stops(network_training, network_testing, stop, previous_stop, configs, features_set, correlation_columns, classification):
 	training = build_features_more_history(network_training, stop, previous_stop)
 	testing = build_features_more_history(network_testing, stop, previous_stop)
 	#print(first_step_modeling(training, testing))
 	if len(training)> 0 and len(testing) > 0:
-		info_dict, correlation_info_ = iterate_columns_modeling(training, testing, stop, previous_stop, configs,features_set, correlation_columns)
+		info_dict, correlation_info_ = iterate_columns_modeling(training, testing, stop, previous_stop, configs,features_set, correlation_columns, classification)
 		return info_dict,correlation_info_
 	else:
 		return None, None
